@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Team, Match, Player, MatchStatus, MatchRound, CompetitionSettings, NewsArticle } from '../types';
+import { Team, Match, Player, MatchStatus, MatchRound, CompetitionSettings, NewsArticle, getAge } from '../types';
 import { store } from '../services/store';
 import * as XLSX from 'xlsx';
 import DrawingView from './DrawingView';
@@ -980,28 +980,33 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
 function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: Player[], onRefresh: () => void }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [teamFilter, setTeamFilter] = useState('ALL');
-  const [newPlayer, setNewPlayer] = useState({ name: '', position: 'ST', teamId: '', goals: 0 });
+  const [newPlayer, setNewPlayer] = useState({ name: '', position: 'ST', teamId: '', goals: 0, birthDate: '2011-05-15' });
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
 
   const handleAdd = async () => {
     if (!newPlayer.name || !newPlayer.teamId) return;
+    const computedAge = getAge(newPlayer.birthDate);
     await store.addPlayer({
       id: `p-${Date.now()}`,
       name: newPlayer.name,
       teamId: newPlayer.teamId,
       position: newPlayer.position,
       goals: Number(newPlayer.goals) || 0,
-      rating: { pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 }
+      rating: { pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 },
+      birthDate: newPlayer.birthDate,
+      age: computedAge
     });
-    setNewPlayer({ name: '', position: 'ST', teamId: '', goals: 0 });
+    setNewPlayer({ name: '', position: 'ST', teamId: '', goals: 0, birthDate: '2011-05-15' });
     onRefresh();
   };
 
   const handleUpdate = async () => {
     if (!editingPlayer || !editingPlayer.name || !editingPlayer.teamId) return;
+    const computedAge = getAge(editingPlayer.birthDate);
     await store.updatePlayer({
       ...editingPlayer,
-      goals: Number(editingPlayer.goals) || 0
+      goals: Number(editingPlayer.goals) || 0,
+      age: computedAge
     });
     setEditingPlayer(null);
     onRefresh();
@@ -1029,13 +1034,22 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
             <Edit2 className="w-5 h-5 animate-pulse" />
             <span>Edit Profil Pemain</span>
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase">Nama Pemain</label>
               <input 
                 className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500"
                 value={editingPlayer.name}
                 onChange={(e) => setEditingPlayer({...editingPlayer, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Tanggal Lahir (Usia: {getAge(editingPlayer.birthDate)} Thn)</label>
+              <input 
+                type="date"
+                className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500 cursor-pointer"
+                value={editingPlayer.birthDate || '2011-05-15'}
+                onChange={(e) => setEditingPlayer({...editingPlayer, birthDate: e.target.value, age: getAge(e.target.value)})}
               />
             </div>
             <div className="space-y-1">
@@ -1103,42 +1117,60 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
             <PlusCircle className="w-5 h-5 text-pitch" />
             <span>Tambah Pemain Baru</span>
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <input 
-              placeholder="Nama Lengkap Pemain"
-              className="p-3 rounded-xl border border-slate-200 font-bold text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:border-pitch"
-              value={newPlayer.name}
-              onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
-            />
-            <select 
-              className="p-3 rounded-xl border border-slate-200 font-bold text-slate-600 bg-white focus:outline-none focus:border-pitch"
-              value={newPlayer.position}
-              onChange={(e) => setNewPlayer({...newPlayer, position: e.target.value})}
-            >
-              <option value="GK">GK (Kiper)</option>
-              <option value="CB">CB (Bek Tengah)</option>
-              <option value="LB">LB (Bek Kiri)</option>
-              <option value="RB">RB (Bek Kanan)</option>
-              <option value="CM">CM (Gelandang Tengah)</option>
-              <option value="LM">LM (Sayap Kiri)</option>
-              <option value="RM">RM (Sayap Kanan)</option>
-              <option value="CAM">CAM (Gelandang Serang)</option>
-              <option value="ST">ST (Penyerang)</option>
-              <option value="LW">LW (Penyerang Sayap Kiri)</option>
-              <option value="RW">RW (Penyerang Sayap Kanan)</option>
-            </select>
-            <select 
-              className="p-3 rounded-xl border border-slate-200 font-bold text-slate-600 bg-white focus:outline-none focus:border-pitch"
-              value={newPlayer.teamId}
-              onChange={(e) => setNewPlayer({...newPlayer, teamId: e.target.value})}
-            >
-              <option value="">Pilih Tim</option>
-              {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-            </select>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-end">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Nama Pemain</label>
+              <input 
+                placeholder="Nama Lengkap Pemain"
+                className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:border-pitch"
+                value={newPlayer.name}
+                onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Tanggal Lahir ({getAge(newPlayer.birthDate)} Thn)</label>
+              <input 
+                type="date"
+                className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-slate-600 bg-white focus:outline-none focus:border-pitch cursor-pointer"
+                value={newPlayer.birthDate}
+                onChange={(e) => setNewPlayer({...newPlayer, birthDate: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Posisi Bermain</label>
+              <select 
+                className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-600 bg-white focus:outline-none focus:border-pitch"
+                value={newPlayer.position}
+                onChange={(e) => setNewPlayer({...newPlayer, position: e.target.value})}
+              >
+                <option value="GK">GK (Kiper)</option>
+                <option value="CB">CB (Bek Tengah)</option>
+                <option value="LB">LB (Bek Kiri)</option>
+                <option value="RB">RB (Bek Kanan)</option>
+                <option value="CM">CM (Gelandang Tengah)</option>
+                <option value="LM">LM (Sayap Kiri)</option>
+                <option value="RM">RM (Sayap Kanan)</option>
+                <option value="CAM">CAM (Gelandang Serang)</option>
+                <option value="ST">ST (Penyerang)</option>
+                <option value="LW">LW (Penyerang Sayap Kiri)</option>
+                <option value="RW">RW (Penyerang Sayap Kanan)</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Klub / Tim</label>
+              <select 
+                className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-600 bg-white focus:outline-none focus:border-pitch"
+                value={newPlayer.teamId}
+                onChange={(e) => setNewPlayer({...newPlayer, teamId: e.target.value})}
+              >
+                <option value="">Pilih Tim</option>
+                {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
             <button 
               onClick={handleAdd}
               disabled={!newPlayer.name || !newPlayer.teamId}
-              className="bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black py-3 px-6 shadow-lg transition-all disabled:opacity-50 disabled:hover:bg-slate-900"
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black py-3 px-6 shadow-lg transition-all disabled:opacity-50 disabled:hover:bg-slate-900 h-[46px]"
             >
               Simpan Pemain
             </button>
@@ -1173,17 +1205,20 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
             const team = teams.find(t => t.id === p.teamId);
             return (
               <div key={p.id} className="bg-white border border-slate-100 p-6 rounded-2xl flex items-center justify-between shadow-sm hover:shadow-md transition-shadow group">
-                <div className="space-y-1">
+                <div className="space-y-1 text-left">
                   <p className="font-extrabold text-slate-800 tracking-tight">{p.name}</p>
-                  <div className="flex items-center space-x-1.5 mt-1">
+                  <div className="flex items-center flex-wrap gap-1.5 mt-1">
                     <span className="text-[9px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                       {p.position || 'ST'}
                     </span>
-                    <span className="text-[9px] font-bold text-slate-400 capitalize truncate max-w-[120px]">
+                    <span className="text-[9px] font-black uppercase text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                      Usia: {getAge(p.birthDate)} Thn
+                    </span>
+                    <span className="text-[9px] font-bold text-slate-400 capitalize truncate max-w-[125px]">
                       {team?.name || '-'}
                     </span>
                   </div>
-                  <p className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100 mt-1 inline-block">{p.goals || 0} GOL</p>
+                  <p className="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-md border border-orange-100 mt-1.5 inline-block">{p.goals || 0} GOL</p>
                 </div>
 
                 <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 md:transition-opacity">

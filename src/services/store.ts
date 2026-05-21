@@ -80,12 +80,28 @@ export class TournamentStore {
       this.teams = parsed.teams || INITIAL_TEAMS;
       this.matches = parsed.matches || [];
       this.players = parsed.players || [];
+      
+      // Defensive fix: Ensure all loaded players have a birthDate & age
+      let updatedSome = false;
+      this.players = this.players.map(p => {
+        if (!p.birthDate) {
+          const mocks = this.getMockPlayers();
+          const foundMock = mocks.find(m => m.id === p.id);
+          p.birthDate = foundMock?.birthDate || '2011-05-15';
+          p.age = foundMock?.age || 15;
+          updatedSome = true;
+        }
+        return p;
+      });
+
       this.officials = parsed.officials || [];
       this.news = parsed.news || INITIAL_NEWS;
       this.settings = parsed.settings || { ...DEFAULT_SETTINGS };
       this.seededIds = parsed.seededIds || ['t1', 't2', 't3', 't4'];
-      if (!this.players || this.players.length === 0) {
-        this.players = this.getMockPlayers();
+      if (!this.players || this.players.length === 0 || updatedSome) {
+        if (!this.players || this.players.length === 0) {
+          this.players = this.getMockPlayers();
+        }
         this.save();
       }
     } else {
@@ -99,14 +115,14 @@ export class TournamentStore {
 
   private getMockPlayers(): Player[] {
     return [
-      { id: 'p1', name: 'Rafi Ahmad', teamId: 't1', goals: 5, position: 'ST', rating: { pac: 86, sho: 84, pas: 72, dri: 80, def: 38, phy: 75 } },
-      { id: 'p2', name: 'Bintang Pamungkas', teamId: 't2', goals: 2, position: 'CM', rating: { pac: 78, sho: 76, pas: 88, dri: 84, def: 62, phy: 74 } },
-      { id: 'p3', name: 'Gilang Ramadhan', teamId: 't3', goals: 0, position: 'CB', rating: { pac: 72, sho: 48, pas: 65, dri: 60, def: 86, phy: 84 } },
-      { id: 'p4', name: 'Irfan Bachdim Jr', teamId: 't4', goals: 4, position: 'LW', rating: { pac: 92, sho: 80, pas: 75, dri: 86, def: 35, phy: 68 } },
-      { id: 'p5', name: 'Fajar Pratama', teamId: 't5', goals: 0, position: 'GK', rating: { pac: 76, sho: 71, pas: 74, dri: 78, def: 32, phy: 76 } },
-      { id: 'p6', name: 'Reza Aditya', teamId: 't2', goals: 3, position: 'ST', rating: { pac: 83, sho: 81, pas: 68, dri: 75, def: 40, phy: 73 } },
-      { id: 'p7', name: 'Dika Pratama', teamId: 't1', goals: 1, position: 'CAM', rating: { pac: 81, sho: 79, pas: 85, dri: 87, def: 44, phy: 70 } },
-      { id: 'p8', name: 'Andik Vermansyah Jr', teamId: 't6', goals: 3, position: 'RW', rating: { pac: 94, sho: 75, pas: 78, dri: 88, def: 30, phy: 62 } },
+      { id: 'p1', name: 'Rafi Ahmad', teamId: 't1', goals: 5, position: 'ST', rating: { pac: 86, sho: 84, pas: 72, dri: 80, def: 38, phy: 75 }, birthDate: '2011-02-12', age: 15 },
+      { id: 'p2', name: 'Bintang Pamungkas', teamId: 't2', goals: 2, position: 'CM', rating: { pac: 78, sho: 76, pas: 88, dri: 84, def: 62, phy: 74 }, birthDate: '2010-08-20', age: 15 },
+      { id: 'p3', name: 'Gilang Ramadhan', teamId: 't3', goals: 0, position: 'CB', rating: { pac: 72, sho: 48, pas: 65, dri: 60, def: 86, phy: 84 }, birthDate: '2011-12-05', age: 14 },
+      { id: 'p4', name: 'Irfan Bachdim Jr', teamId: 't4', goals: 4, position: 'LW', rating: { pac: 92, sho: 80, pas: 75, dri: 86, def: 35, phy: 68 }, birthDate: '2010-05-18', age: 16 },
+      { id: 'p5', name: 'Fajar Pratama', teamId: 't5', goals: 0, position: 'GK', rating: { pac: 76, sho: 71, pas: 74, dri: 78, def: 32, phy: 76 }, birthDate: '2011-04-30', age: 15 },
+      { id: 'p6', name: 'Reza Aditya', teamId: 't2', goals: 3, position: 'ST', rating: { pac: 83, sho: 81, pas: 68, dri: 75, def: 40, phy: 73 }, birthDate: '2011-09-14', age: 14 },
+      { id: 'p7', name: 'Dika Pratama', teamId: 't1', goals: 1, position: 'CAM', rating: { pac: 81, sho: 79, pas: 85, dri: 87, def: 44, phy: 70 }, birthDate: '2010-11-22', age: 15 },
+      { id: 'p8', name: 'Andik Vermansyah Jr', teamId: 't6', goals: 3, position: 'RW', rating: { pac: 94, sho: 75, pas: 78, dri: 88, def: 30, phy: 62 }, birthDate: '2012-01-08', age: 14 },
     ];
   }
 

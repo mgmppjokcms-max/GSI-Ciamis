@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Player, Team, PlayerRating, Match } from '../types';
+import { Player, Team, PlayerRating, Match, getAge } from '../types';
 import { store } from '../services/store';
 import { 
   Award, 
@@ -120,12 +120,23 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
               🔄 {isSecondaryActive ? 'Tambahan' : 'Utama'}
             </button>
           )}
-          <span className="text-lg mt-1" title="Indonesia">🇮🇩</span>
-          {team?.logoUrl ? (
-            <img src={team.logoUrl} alt={team.name} className="w-5 h-5 rounded-full object-cover mt-2 border border-black/10" referrerPolicy="no-referrer" />
-          ) : (
-            <span className="text-[8px] font-black mt-2 bg-black/10 px-1.5 py-0.5 rounded uppercase">{team?.name || 'GSI'}</span>
-          )}
+          
+          {/* USIA/AGE Badge replacing ID flag */}
+          <div className="mt-2 text-center" title="Usia Pemain">
+            <span className="text-[7.5px] font-black text-white bg-slate-900 px-1.5 py-0.5 rounded tracking-wider uppercase border border-slate-750/30 font-sans block min-w-[32px]">
+              {getAge(player.birthDate)} THN
+            </span>
+          </div>
+
+          {/* Logo and Full Team Name on Card Face */}
+          <div className="flex flex-col items-center mt-2.5 w-14">
+            {team?.logoUrl ? (
+              <img src={team.logoUrl} alt={team.name} className="w-5 h-5 rounded-full object-cover border border-black/10 mb-0.5" referrerPolicy="no-referrer" />
+            ) : null}
+            <span className="text-[7.5px] font-black leading-tight bg-black/10 px-1 py-0.5 rounded uppercase text-center w-full break-words max-h-8 overflow-hidden line-clamp-2" title={team?.name || 'GSI'}>
+              {team?.name || 'GSI'}
+            </span>
+          </div>
         </div>
 
         {/* Player Silhouette Drawing */}
@@ -147,13 +158,6 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
       <div className="text-center font-black uppercase text-sm border-t border-b border-black/10 py-1 tracking-tight truncate">
         {player.name}
       </div>
-
-      {/* Full Team Name without abbreviation */}
-      {team?.name && (
-        <div className="text-center text-[9px] font-extrabold text-black/60 -mt-2 mb-1 uppercase tracking-wider truncate px-1" title={team.name}>
-          {team.name}
-        </div>
-      )}
 
       {/* Attributes breakdown / Custom list */}
       {displayingCustom && player.customAttributes ? (

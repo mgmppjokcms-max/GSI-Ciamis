@@ -50,6 +50,8 @@ export interface Player {
   secondaryPosition?: string;
   secondaryRating?: PlayerRating;
   secondaryCustomAttributes?: { name: string; value: string }[];
+  birthDate?: string;
+  age?: number;
 }
 
 export interface Official {
@@ -83,5 +85,17 @@ export interface NewsArticle {
   imageUrl?: string;
   date: string;
   author?: string;
+}
+
+export function getAge(birthDateStr?: string): number {
+  if (!birthDateStr) return 15; // default fallback age for SMP
+  const today = new Date();
+  const birthDate = new Date(birthDateStr);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return isNaN(age) || age < 0 ? 15 : age;
 }
 
