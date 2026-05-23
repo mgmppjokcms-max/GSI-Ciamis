@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Team, Match, Player, MatchStatus, MatchRound, CompetitionSettings, NewsArticle, getAge } from '../types';
+import { Team, Match, Player, Official, MatchStatus, MatchRound, CompetitionSettings, NewsArticle, getAge } from '../types';
 import { store } from '../services/store';
 import * as XLSX from 'xlsx';
 import DrawingView from './DrawingView';
@@ -23,6 +23,94 @@ import {
   Newspaper
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+
+interface LocalImageUploaderProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  buttonColor?: string;
+}
+
+function LocalImageUploader({ label, value, onChange, placeholder, buttonColor }: LocalImageUploaderProps) {
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onChange(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const isLocalBase64 = value && value.startsWith('data:image');
+
+  return (
+    <div className="space-y-1 w-full text-left">
+      <div className="flex items-center justify-between pb-0.5">
+        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">{label}</label>
+        {isLocalBase64 && (
+          <span className="text-[8px] font-black text-rose-500 bg-rose-50 border border-rose-200 px-1 rounded-md tracking-wider">
+            ✓ FILE LOKAL
+          </span>
+        )}
+      </div>
+      <div className="flex space-x-2">
+        <input 
+          type="text"
+          placeholder={placeholder || "Masukkan link foto dari internet..."}
+          className="flex-1 p-2.5 rounded-xl border border-slate-200 font-bold text-xs text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:border-pitch"
+          value={isLocalBase64 ? '[FOTO LOKAL BERHASIL DIUNGGAH]' : value}
+          onChange={(e) => {
+            if (!e.target.value.startsWith('[')) {
+              onChange(e.target.value);
+            }
+          }}
+          disabled={!!isLocalBase64}
+        />
+        
+        <input 
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+        />
+        
+        {isLocalBase64 ? (
+          <button
+            type="button"
+            onClick={() => {
+              onChange('');
+              if (fileInputRef.current) fileInputRef.current.value = '';
+            }}
+            className="px-3 rounded-xl bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 text-xs font-black transition-all flex items-center justify-center space-x-1 shrink-0"
+          >
+            <X className="w-4 h-4" />
+            <span>Hapus</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className={cn(
+              "px-3 rounded-xl hover:bg-opacity-90 border text-xs font-black transition-all flex items-center justify-center space-x-1 shrink-0 shadow-sm",
+              buttonColor === "pitch" 
+                ? "bg-pitch text-white border-pitch" 
+                : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200"
+            )}
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Pilih File</span>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default function AdminView({ teams, matches, players, seededIds, onRefresh }: { 
   teams: Team[], 
@@ -613,86 +701,497 @@ function ScorerManager({ teams, players, onRefresh }: { teams: Team[], players: 
 }
 
 function OfficialManager({ teams, onRefresh }: { teams: Team[], onRefresh: () => void }) {
-  const [officials, setOfficials] = useState<any[]>([]);
-  const [newOfficial, setNewOfficial] = useState({ name: '', role: '', teamId: '' });
+  const [officials, setOfficials] = useState<Official[]>([]);
+  const [newOfficial, setNewOfficial] = useState({ name: '', role: '', teamId: '', photoUrl: '' });
+  const [editingOfficial, setEditingOfficial] = useState<Official | null>(null);
 
   React.useEffect(() => {
     store.getOfficials().then(setOfficials);
   }, [teams]);
 
+  const handleDownloadTemplateExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const officialsData = [
+      {
+        ID: "o-coach-joko",
+        Nama: "Coach Joko",
+        Role_Jabatan: "Pelatih Kepala",
+        Klub_ID: "t-ciamis-utara",
+        Klub: "CIAMIS UTARA FC",
+        FotoURL_Official: ""
+      },
+      {
+        ID: "o-coach-budi",
+        Nama: "Coach Budi",
+        Role_Jabatan: "Asisten Pelatih",
+        Klub_ID: "t-ciamis-selatan",
+        Klub: "CIAMIS SELATAN FC",
+        FotoURL_Official: ""
+      }
+    ];
+    const officialsWs = XLSX.utils.json_to_sheet(officialsData);
+    XLSX.utils.book_append_sheet(wb, officialsWs, "Data Official GSI");
+    XLSX.writeFile(wb, "Template_Impor_Official_GSI.xlsx");
+  };
+
+  const handleExportExcel = async () => {
+    const wb = XLSX.utils.book_new();
+    const officialsData = officials.map(o => ({
+      ID: o.id,
+      Nama: o.name,
+      Role_Jabatan: o.role,
+      Klub_ID: o.teamId,
+      Klub: teams.find(t => t.id === o.teamId)?.name || o.teamId,
+      FotoURL_Official: o.photoUrl || ''
+    }));
+    const officialsWs = XLSX.utils.json_to_sheet(officialsData);
+    XLSX.utils.book_append_sheet(wb, officialsWs, "Data Official GSI");
+    XLSX.writeFile(wb, `Data_Official_GSI_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm('Impor data Excel akan menambah/memperbarui data Official GSI. Lanjutkan?')) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const importedOfficials: Official[] = [];
+
+        workbook.SheetNames.forEach(sheetName => {
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+          if (jsonData.length === 0) return;
+
+          jsonData.forEach(row => {
+            const name = getRowValue(row, ['Nama', 'Nama_Official', 'Nama Official', 'name', 'Name', 'Official']);
+            const teamId = getRowValue(row, ['Klub_ID', 'KlubId', 'teamId', 'TeamId', 'Klub', 'Club', 'Nama Klub']);
+            if (!name) return;
+            const finalTeamId = teamId ? String(teamId) : '';
+
+            const id = getRowValue(row, ['id', 'ID', 'Id', 'officialId', 'official_id']) || `o-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+
+            const official: Official = {
+              id: String(id),
+              name: String(name),
+              role: String(getRowValue(row, ['Role_Jabatan', 'Role Jabatan', 'Role', 'role', 'Jabatan', 'Position']) || 'Pelatih Kepala'),
+              teamId: finalTeamId,
+              photoUrl: getRowValue(row, ['FotoURL_Official', 'Foto URL Official', 'photoUrl', 'PhotoURL_Official', 'Foto']) ? String(getRowValue(row, ['FotoURL_Official', 'Foto URL Official', 'photoUrl', 'PhotoURL_Official', 'Foto'])) : undefined
+            };
+            importedOfficials.push(official);
+          });
+        });
+
+        if (importedOfficials.length === 0) {
+          alert('Tidak ada data official yang valid ditemukan di file Excel.');
+          return;
+        }
+
+        const success = await store.importExcel([], [], importedOfficials, []);
+        if (success) {
+          alert(`Berhasil mengimpor ${importedOfficials.length} data Official GSI dari Excel!`);
+          store.getOfficials().then(setOfficials);
+          onRefresh();
+        } else {
+          alert('Gagal mengimpor data Official dari Excel.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Gagal membaca file Excel. Error: ' + (err as Error).message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
+
   const handleAdd = async () => {
     if (!newOfficial.name || !newOfficial.teamId || !newOfficial.role) return;
     await store.addOfficial({
       id: `off-${Date.now()}`,
-      ...newOfficial
+      name: newOfficial.name,
+      role: newOfficial.role,
+      teamId: newOfficial.teamId,
+      photoUrl: newOfficial.photoUrl || undefined
     });
-    setNewOfficial({ name: '', role: '', teamId: '' });
+    setNewOfficial({ name: '', role: '', teamId: '', photoUrl: '' });
     store.getOfficials().then(setOfficials);
     onRefresh();
   };
 
+  const handleUpdate = async () => {
+    if (!editingOfficial || !editingOfficial.name || !editingOfficial.teamId || !editingOfficial.role) return;
+    await store.updateOfficial(editingOfficial);
+    setEditingOfficial(null);
+    store.getOfficials().then(setOfficials);
+    onRefresh();
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Apakah Anda yakin ingin menghapus official ini?')) {
+      await store.deleteOfficial(id);
+      store.getOfficials().then(setOfficials);
+      onRefresh();
+    }
+  };
+
   return (
-    <div className="p-8 space-y-12">
+    <div className="p-8 space-y-8 animate-in fade-in duration-300">
+      {/* Title & Stats */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <h3 className="text-xl font-black text-slate-700 uppercase tracking-tight">Kelola Official / Staf</h3>
+          <p className="text-xs font-bold text-slate-400 italic">Total: {officials.length} Staf Official Terdaftar</p>
+        </div>
+      </div>
+
+      {/* Sleek Excel Data Panel */}
+      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center shrink-0 border border-emerald-200">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h4 className="font-extrabold text-slate-700 text-sm">Alat Data Excel (Bagian Official)</h4>
+            <p className="text-slate-500 text-[11px] font-bold">Impor, ekspor, atau gunakan template Excel serbaguna khusus untuk data Official / Staf</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button 
+            onClick={handleDownloadTemplateExcel}
+            className="flex items-center space-x-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-violet-150 shadow-sm"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-violet-600" />
+            <span>Unduh Template</span>
+          </button>
+          
+          <label className="flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-emerald-150 cursor-pointer shadow-sm">
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Unggah Excel</span>
+            <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
+          </label>
+
+          <button 
+            onClick={handleExportExcel}
+            className="flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-amber-150 shadow-sm"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-600" />
+            <span>Unduh Excel</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Edit Form Modal/Section */}
+      {editingOfficial && (
+        <div className="bg-amber-50 p-8 rounded-3xl border-2 border-dashed border-amber-250 space-y-6">
+          <h4 className="font-black text-amber-800 flex items-center space-x-2">
+            <Edit2 className="w-5 h-5 animate-pulse" />
+            <span>Edit Profil Official</span>
+          </h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Nama Official</label>
+              <input 
+                className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500 text-sm"
+                value={editingOfficial.name}
+                onChange={(e) => setEditingOfficial({...editingOfficial, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Jabatan / Peran</label>
+              <input 
+                placeholder="misal: Pelatih Kepala, Manajer"
+                className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500 text-sm"
+                value={editingOfficial.role}
+                onChange={(e) => setEditingOfficial({...editingOfficial, role: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">Tim</label>
+              <select 
+                className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500 text-sm"
+                value={editingOfficial.teamId}
+                onChange={(e) => setEditingOfficial({...editingOfficial, teamId: e.target.value})}
+              >
+                <option value="">Pilih Tim</option>
+                {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Photo URL & Presets selection for editing */}
+          <div className="p-4 bg-white rounded-2xl border border-amber-150 space-y-3">
+            <p className="text-xs font-bold text-amber-800 uppercase tracking-widest">Foto / Avatar Official</p>
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <div className="flex-1 w-full">
+                <LocalImageUploader 
+                  label="URL Kode / File Foto Official"
+                  placeholder="https://images.unsplash.com/... atau pilih file komputer"
+                  value={editingOfficial.photoUrl || ''}
+                  onChange={(val) => setEditingOfficial({...editingOfficial, photoUrl: val})}
+                />
+              </div>
+              <div className="space-y-1 w-full lg:w-auto shrink-0">
+                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Preset avatar instan (Dicebear):</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: 'Pelatih', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Coach' },
+                    { name: 'Manajer', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Manager' },
+                    { name: 'Asisten', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Assistant' },
+                    { name: 'Medis', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Staff' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => setEditingOfficial({...editingOfficial, photoUrl: preset.url})}
+                      className={cn(
+                        "flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all",
+                        editingOfficial.photoUrl === preset.url
+                          ? "bg-amber-100 border-amber-400 text-amber-800"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                      )}
+                    >
+                      <img src={preset.url} alt={preset.name} className="w-4 h-4 rounded-full object-cover" referrerPolicy="no-referrer" />
+                      <span>{preset.name}</span>
+                    </button>
+                  ))}
+                  {editingOfficial.photoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingOfficial({...editingOfficial, photoUrl: ''})}
+                      className="px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-105 text-[10px] font-bold"
+                    >
+                      Kosongkan Foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <button 
+              type="button"
+              onClick={() => setEditingOfficial(null)}
+              className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-xs"
+            >
+              Batal
+            </button>
+            <button 
+              type="button"
+              onClick={handleUpdate}
+              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-xs shadow-md"
+            >
+              Simpan Perubahan
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Form Section */}
       <div className="bg-slate-50 p-8 rounded-3xl border-2 border-dashed border-slate-200 space-y-6">
         <h4 className="font-black text-slate-700 flex items-center space-x-2 underline decoration-pitch underline-offset-4 decoration-2">
           <PlusCircle className="w-5 h-5 text-pitch" />
           <span>Tambah Official Tim</span>
         </h4>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <input 
-            placeholder="Nama Official"
-            className="p-3 rounded-xl border border-slate-200 font-bold"
-            value={newOfficial.name}
-            onChange={(e) => setNewOfficial({...newOfficial, name: e.target.value})}
-          />
-          <input 
-            placeholder="Jabatan (e.g. Manajer, Pelatih)"
-            className="p-3 rounded-xl border border-slate-200 font-bold"
-            value={newOfficial.role}
-            onChange={(e) => setNewOfficial({...newOfficial, role: e.target.value})}
-          />
-          <select 
-            className="p-3 rounded-xl border border-slate-200 font-bold"
-            value={newOfficial.teamId}
-            onChange={(e) => setNewOfficial({...newOfficial, teamId: e.target.value})}
-          >
-            <option value="">Pilih Tim</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Nama Official</label>
+            <input 
+              placeholder="Nama Lengkap Official"
+              className="w-full p-3 rounded-xl border border-slate-200 font-bold bg-white text-sm"
+              value={newOfficial.name}
+              onChange={(e) => setNewOfficial({...newOfficial, name: e.target.value})}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Jabatan</label>
+            <input 
+              placeholder="Pelatih, Manajer, Medis, dll."
+              className="w-full p-3 rounded-xl border border-slate-200 font-bold bg-white text-sm"
+              value={newOfficial.role}
+              onChange={(e) => setNewOfficial({...newOfficial, role: e.target.value})}
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Klub / Tim</label>
+            <select 
+              className="w-full p-3 rounded-xl border border-slate-200 font-bold bg-white text-sm"
+              value={newOfficial.teamId}
+              onChange={(e) => setNewOfficial({...newOfficial, teamId: e.target.value})}
+            >
+              <option value="">Pilih Tim</option>
+              {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Photo URL & Presets selection for Add Form */}
+        <div className="p-4 bg-white rounded-2xl border border-slate-150 space-y-3">
+          <p className="text-xs font-bold text-slate-700 uppercase tracking-widest">Foto / Avatar Official</p>
+          <div className="flex flex-col lg:flex-row gap-4 items-center">
+            <div className="flex-1 w-full">
+              <LocalImageUploader 
+                label="URL Kode / File Foto Official"
+                placeholder="https://images.unsplash.com/... atau pilih file komputer"
+                value={newOfficial.photoUrl}
+                onChange={(val) => setNewOfficial({...newOfficial, photoUrl: val})}
+              />
+            </div>
+            <div className="space-y-1 w-full lg:w-auto shrink-0">
+              <label className="text-[10px] font-semibold text-slate-400 block mb-1">Preset avatar instan (Dicebear):</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { name: 'Pelatih', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Coach' },
+                  { name: 'Manajer', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Manager' },
+                  { name: 'Asisten', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Assistant' },
+                  { name: 'Medis', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Staff' },
+                ].map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => setNewOfficial({...newOfficial, photoUrl: preset.url})}
+                    className={cn(
+                      "flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all",
+                      newOfficial.photoUrl === preset.url
+                        ? "bg-pitch/10 border-pitch text-pitch"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                    )}
+                  >
+                    <img src={preset.url} alt={preset.name} className="w-4 h-4 rounded-full object-cover" referrerPolicy="no-referrer" />
+                    <span>{preset.name}</span>
+                  </button>
+                ))}
+                {newOfficial.photoUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setNewOfficial({...newOfficial, photoUrl: ''})}
+                    className="px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-105 text-[10px] font-bold"
+                  >
+                    Kosongkan Foto
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
           <button 
+            type="button"
             onClick={handleAdd}
-            className="bg-slate-900 text-white rounded-xl font-black py-3 hover:bg-slate-800 transition-all"
+            disabled={!newOfficial.name || !newOfficial.teamId || !newOfficial.role}
+            className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black shadow-lg transition-all disabled:opacity-50 disabled:hover:bg-slate-900 animate-none"
           >
-            Simpan Official
+            Simpan Official Baru
           </button>
         </div>
       </div>
 
+      {/* Official Lists */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {officials.map(o => (
-           <div key={o.id} className="bg-white border border-slate-100 p-6 rounded-2xl flex items-center justify-between shadow-sm group">
-             <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <div>
-                   <p className="font-black text-slate-800">{o.name}</p>
-                   <p className="text-[10px] font-bold text-pitch uppercase tracking-widest">{o.role}</p>
-                   <p className="text-[9px] font-medium text-slate-400 uppercase">{teams.find(t => t.id === o.teamId)?.name}</p>
-                </div>
-             </div>
-           </div>
+          <div key={o.id} className="bg-white border border-slate-150 p-6 rounded-2xl flex items-center justify-between shadow-sm group hover:border-slate-300 transition-all">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-full overflow-hidden flex items-center justify-center text-slate-400 shrink-0">
+                {o.photoUrl ? (
+                  <img src={o.photoUrl} alt={o.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-black text-slate-400 bg-slate-100 text-sm">
+                    {o.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="font-black text-slate-800 leading-tight">{o.name}</p>
+                <p className="text-[10px] font-bold text-pitch uppercase tracking-widest mt-0.5">{o.role}</p>
+                <p className="text-[9px] font-medium text-slate-400 uppercase">{teams.find(t => t.id === o.teamId)?.name}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button 
+                type="button"
+                onClick={() => setEditingOfficial(o)}
+                className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-amber-100 hover:text-amber-700 transition-all"
+                title="Edit Official"
+              >
+                <Edit2 className="w-3.5 h-3.5" />
+              </button>
+              <button 
+                type="button"
+                onClick={() => handleDelete(o.id)}
+                className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all"
+                title="Hapus Official"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
+function getRowValue(row: any, keysToTry: string[]): any {
+  if (!row || typeof row !== 'object') return undefined;
+  const rowKeys = Object.keys(row);
+  for (const keyToTry of keysToTry) {
+    const cleanKeyToTry = keyToTry.toLowerCase().replace(/[\s_-]/g, '');
+    for (const rk of rowKeys) {
+      const cleanRk = rk.toLowerCase().replace(/[\s_-]/g, '');
+      if (cleanRk === cleanKeyToTry) {
+        return row[rk];
+      }
+    }
+  }
+  return undefined;
+}
+
+function parseExcelDate(val: any): string {
+  if (!val) return '2011-05-15';
+  if (val instanceof Date) {
+    try {
+      return val.toISOString().split('T')[0];
+    } catch {
+      // ignore
+    }
+  }
+  if (typeof val === 'number') {
+    try {
+      // Excel base date is 1900-01-01
+      const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+      if (!isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    } catch {
+      // ignore
+    }
+  }
+  const str = String(val).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return str;
+  }
+  const d = new Date(str);
+  if (!isNaN(d.getTime())) {
+    try {
+      return d.toISOString().split('T')[0];
+    } catch {
+      // ignore
+    }
+  }
+  return '2011-05-15';
+}
+
 function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds: string[], onRefresh: () => void }) {
   const [showAdd, setShowAdd] = useState(false);
-  const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '' });
+  const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', photoUrl: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTeam, setEditTeam] = useState<{ name: string, logoUrl: string }>({ name: '', logoUrl: '' });
+  const [editTeam, setEditTeam] = useState<{ name: string, logoUrl: string, photoUrl: string }>({ name: '', logoUrl: '', photoUrl: '' });
 
   const handleAdd = async () => {
     if (!newTeam.name) return;
@@ -700,17 +1199,18 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
       id: `t${Date.now()}`,
       name: newTeam.name,
       logoUrl: newTeam.logoUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${newTeam.name}`,
+      photoUrl: newTeam.photoUrl || undefined,
       played: 0, won: 0, drawn: 0, lost: 0, goalsFor: 0, goalsAgainst: 0, awayGoals: 0, awayWins: 0, points: 0
     };
     await store.addTeam(team);
-    setNewTeam({ name: '', logoUrl: '' });
+    setNewTeam({ name: '', logoUrl: '', photoUrl: '' });
     setShowAdd(false);
     onRefresh();
   };
 
   const handleStartEdit = (team: Team) => {
     setEditingId(team.id);
-    setEditTeam({ name: team.name, logoUrl: team.logoUrl });
+    setEditTeam({ name: team.name, logoUrl: team.logoUrl || '', photoUrl: team.photoUrl || '' });
   };
 
   const handleSaveEdit = async () => {
@@ -720,25 +1220,68 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
       await store.updateTeam({
         ...team,
         name: editTeam.name,
-        logoUrl: editTeam.logoUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${editTeam.name}`
+        logoUrl: editTeam.logoUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${editTeam.name}`,
+        photoUrl: editTeam.photoUrl || undefined
       });
       setEditingId(null);
       onRefresh();
     }
   };
 
-  const handleExportExcel = async () => {
-    const teams = await store.getTeams();
-    const players = await store.getPlayers();
-    const officials = await store.getOfficials();
-
+  const handleDownloadTemplateExcel = () => {
     const wb = XLSX.utils.book_new();
 
-    // Teams Sheet
+    const teamsData = [
+      {
+        ID: "t-ciamis-utara",
+        Nama: "CIAMIS UTARA FC",
+        LogoURL: "https://api.dicebear.com/7.x/initials/svg?seed=CUFC",
+        FotoURL_Tim: "",
+        Main: 0,
+        Menang: 0,
+        Seri: 0,
+        Kalah: 0,
+        Gol_Masuk: 0,
+        Gol_Kemasukan: 0,
+        Gol_Tandang: 0,
+        Menang_Tandang: 0,
+        Poin: 0,
+        Grup: "A",
+        Unggulan: "Ya"
+      },
+      {
+        ID: "t-ciamis-selatan",
+        Nama: "CIAMIS SELATAN FC",
+        LogoURL: "https://api.dicebear.com/7.x/initials/svg?seed=CSFC",
+        FotoURL_Tim: "",
+        Main: 0,
+        Menang: 0,
+        Seri: 0,
+        Kalah: 0,
+        Gol_Masuk: 0,
+        Gol_Kemasukan: 0,
+        Gol_Tandang: 0,
+        Menang_Tandang: 0,
+        Poin: 0,
+        Grup: "A",
+        Unggulan: "Tidak"
+      }
+    ];
+
+    const teamsWs = XLSX.utils.json_to_sheet(teamsData);
+    XLSX.utils.book_append_sheet(wb, teamsWs, "Data Tim GSI");
+
+    XLSX.writeFile(wb, "Template_Impor_Tim_GSI.xlsx");
+  };
+
+  const handleExportExcel = async () => {
+    const wb = XLSX.utils.book_new();
+
     const teamsData = teams.map(t => ({
       ID: t.id,
       Nama: t.name,
-      LogoURL: t.logoUrl,
+      LogoURL: t.logoUrl || '',
+      FotoURL_Tim: t.photoUrl || '',
       Main: t.played,
       Menang: t.won,
       Seri: t.drawn,
@@ -748,66 +1291,102 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
       Gol_Tandang: t.awayGoals,
       Menang_Tandang: t.awayWins,
       Poin: t.points,
+      Grup: t.group || '',
       Unggulan: seededIds.includes(t.id) ? 'Ya' : 'Tidak'
     }));
+
     const teamsWs = XLSX.utils.json_to_sheet(teamsData);
-    XLSX.utils.book_append_sheet(wb, teamsWs, "Data Tim");
+    XLSX.utils.book_append_sheet(wb, teamsWs, "Data Tim GSI");
 
-    // Players Sheet
-    const playersData = players.map(p => ({
-      ID: p.id,
-      Nama: p.name,
-      Tim: teams.find(t => t.id === p.teamId)?.name || p.teamId,
-      Gol: p.goals
-    }));
-    const playersWs = XLSX.utils.json_to_sheet(playersData);
-    XLSX.utils.book_append_sheet(wb, playersWs, "Data Pemain");
-
-    // Officials Sheet
-    const officialsData = officials.map(o => ({
-      ID: o.id,
-      Nama: o.name,
-      Role: o.role,
-      Tim: teams.find(t => t.id === o.teamId)?.name || o.teamId,
-    }));
-    const officialsWs = XLSX.utils.json_to_sheet(officialsData);
-    XLSX.utils.book_append_sheet(wb, officialsWs, "Data Official");
-
-    XLSX.writeFile(wb, `GSI_Ciamis_Data_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(wb, `Data_Tim_GSI_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const handleExport = async () => {
-    const data = await store.exportData();
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `data_tim_gsi_ciamis_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!confirm('Impor data akan menambah tim/pemain baru. Lanjutkan?')) return;
+    if (!confirm('Impor data Excel akan menambah/memperbarui data Tim GSI. Lanjutkan?')) return;
 
     const reader = new FileReader();
     reader.onload = async (event) => {
-      const content = event.target?.result as string;
-      const success = await store.importData(content);
-      if (success) {
-        alert('Data berhasil diimpor!');
-        onRefresh();
-      } else {
-        alert('Gagal mengimpor data. Pastikan format file benar.');
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const importedTeams: Team[] = [];
+        const excelSeededIds: string[] = [];
+
+        workbook.SheetNames.forEach(sheetName => {
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+          if (jsonData.length === 0) return;
+
+          jsonData.forEach(row => {
+            const name = getRowValue(row, ['Nama', 'Nama_Tim', 'Nama Tim', 'name', 'Name', 'Klub', 'Club']);
+            if (!name) return;
+
+            const id = getRowValue(row, ['id', 'ID', 'Id', 'teamId', 'team_id', 'Klub_ID']) || `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+
+            const playedVal = getRowValue(row, ['Main', 'Played', 'played', 'Matches']);
+            const wonVal = getRowValue(row, ['Menang', 'Won', 'won', 'Wins']);
+            const drawnVal = getRowValue(row, ['Seri', 'Drawn', 'drawn', 'Draws']);
+            const lostVal = getRowValue(row, ['Kalah', 'Lost', 'lost', 'Losses']);
+            const goalsForVal = getRowValue(row, ['Gol_Masuk', 'Gol Masuk', 'goalsFor', 'Goals_For', 'GF', 'Gol']);
+            const goalsAgainstVal = getRowValue(row, ['Gol_Kemasukan', 'Gol Kemasukan', 'goalsAgainst', 'Goals_Against', 'GA']);
+            const awayGoalsVal = getRowValue(row, ['Gol_Tandang', 'Gol Tandang', 'away_goals', 'awayGoals']);
+            const awayWinsVal = getRowValue(row, ['Menang_Tandang', 'Menang Tandang', 'away_wins', 'awayWins']);
+            const pointsVal = getRowValue(row, ['Poin', 'Points', 'points', 'PTS', 'Pts']);
+            const groupVal = getRowValue(row, ['Grup', 'Group', 'group', 'Pool']);
+            const seededVal = getRowValue(row, ['Unggulan', 'Seeded', 'seeded']);
+
+            const team: Team = {
+              id: String(id),
+              name: String(name),
+              logoUrl: getRowValue(row, ['LogoURL', 'Logo_URL', 'Logo URL', 'logoUrl', 'Logo']) 
+                ? String(getRowValue(row, ['LogoURL', 'Logo_URL', 'Logo URL', 'logoUrl', 'Logo'])) 
+                : `https://api.dicebear.com/7.x/initials/svg?seed=${name}`,
+              photoUrl: getRowValue(row, ['FotoURL_Tim', 'FotoURL_Club', 'Foto URL Tim', 'photoUrl', 'Photo_URL', 'Photo']) 
+                ? String(getRowValue(row, ['FotoURL_Tim', 'FotoURL_Club', 'Foto URL Tim', 'photoUrl', 'Photo_URL', 'Photo'])) 
+                : undefined,
+              played: isNaN(Number(playedVal)) ? 0 : Number(playedVal),
+              won: isNaN(Number(wonVal)) ? 0 : Number(wonVal),
+              drawn: isNaN(Number(drawnVal)) ? 0 : Number(drawnVal),
+              lost: isNaN(Number(lostVal)) ? 0 : Number(lostVal),
+              goalsFor: isNaN(Number(goalsForVal)) ? 0 : Number(goalsForVal),
+              goalsAgainst: isNaN(Number(goalsAgainstVal)) ? 0 : Number(goalsAgainstVal),
+              awayGoals: isNaN(Number(awayGoalsVal)) ? 0 : Number(awayGoalsVal),
+              awayWins: isNaN(Number(awayWinsVal)) ? 0 : Number(awayWinsVal),
+              points: isNaN(Number(pointsVal)) ? 0 : Number(pointsVal),
+              group: groupVal ? String(groupVal) : undefined,
+            };
+
+            importedTeams.push(team);
+
+            const seededStr = String(seededVal || '').trim().toLowerCase();
+            if (seededStr === 'ya' || seededStr === 'true' || seededStr === 'yes' || seededStr === '1') {
+              excelSeededIds.push(team.id);
+            }
+          });
+        });
+
+        if (importedTeams.length === 0) {
+          alert('Tidak ada data tim yang valid ditemukan di file Excel.');
+          return;
+        }
+
+        const success = await store.importExcel(importedTeams, [], [], excelSeededIds);
+        if (success) {
+          alert(`Berhasil mengimpor ${importedTeams.length} data Tim GSI dari Excel!`);
+          onRefresh();
+        } else {
+          alert('Gagal mengimpor data Tim dari Excel.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Gagal membaca file Excel. Error: ' + (err as Error).message);
       }
     };
-    reader.readAsText(file);
-    e.target.value = ''; // Reset input
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
   };
 
   const handleDelete = async (id: string) => {
@@ -827,62 +1406,90 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
   };
 
   return (
-    <div className="p-8 space-y-8">
-      <div className="flex justify-between items-center">
+    <div className="p-8 space-y-8 animate-in fade-in duration-300">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
         <div>
-          <h3 className="text-xl font-black text-slate-700">Kelola Tim & Unggulan</h3>
-          <p className="text-xs font-bold text-slate-400 italic">Total: {teams.length} Tim</p>
+          <h3 className="text-xl font-black text-slate-700 uppercase tracking-tight">Kelola Tim & Unggulan</h3>
+          <p className="text-xs font-bold text-slate-400 italic">Total: {teams.length} Tim Terdaftar</p>
         </div>
+        <button 
+          onClick={() => setShowAdd(!showAdd)}
+          className="flex items-center space-x-2 bg-slate-900 text-white px-5 py-2.5 rounded-xl text-xs font-black transition-all hover:bg-slate-800 shrink-0 shadow-md active:scale-95"
+        >
+          <Plus className="w-4 h-4" />
+          <span>{showAdd ? 'Tutup Form' : 'Tambah Tim Baru'}</span>
+        </button>
+      </div>
+
+      {/* Sleek Excel Data Panel */}
+      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center space-x-3">
-          <label className="flex items-center space-x-2 bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold transition-all hover:bg-blue-100 cursor-pointer text-xs">
-            <Upload className="w-4 h-4" />
-            <span>Impor Data</span>
-            <input type="file" className="hidden" accept=".json" onChange={handleImport} />
+          <div className="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center shrink-0 border border-emerald-200">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h4 className="font-extrabold text-slate-700 text-sm">Alat Data Excel (Bagian Tim)</h4>
+            <p className="text-slate-500 text-[11px] font-bold">Impor, ekspor, atau gunakan template Excel serbaguna khusus untuk data Tim</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button 
+            onClick={handleDownloadTemplateExcel}
+            className="flex items-center space-x-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-violet-150 shadow-sm"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-violet-600" />
+            <span>Unduh Template</span>
+          </button>
+          
+          <label className="flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-emerald-150 cursor-pointer shadow-sm">
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Unggah Excel</span>
+            <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
           </label>
+
           <button 
             onClick={handleExportExcel}
-            className="flex items-center space-x-2 bg-yellow-50 text-yellow-700 px-4 py-2 rounded-xl font-bold transition-all hover:bg-yellow-100 text-xs"
+            className="flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-amber-150 shadow-sm"
           >
-            <FileSpreadsheet className="w-4 h-4" />
-            <span>Ekspor Excel</span>
-          </button>
-          <button 
-            onClick={handleExport}
-            className="flex items-center space-x-2 bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl font-bold transition-all hover:bg-emerald-100 text-xs"
-          >
-            <Download className="w-4 h-4" />
-            <span>Ekspor Data</span>
-          </button>
-          <button 
-            onClick={() => setShowAdd(!showAdd)}
-            className="flex items-center space-x-2 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold transition-all hover:bg-slate-800"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Tambah Tim</span>
+            <Download className="w-3.5 h-3.5 text-amber-600" />
+            <span>Unduh Excel</span>
           </button>
         </div>
       </div>
 
       {showAdd && (
-        <div className="bg-slate-50 p-6 rounded-3xl border-2 border-dashed border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-4 animate-in slide-in-from-top duration-300">
-          <input 
-            placeholder="Nama Tim" 
-            className="p-3 rounded-xl border border-slate-200 font-bold"
-            value={newTeam.name}
-            onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
-          />
-          <input 
-            placeholder="URL Logo (Opsional)" 
-            className="p-3 rounded-xl border border-slate-200 font-bold"
-            value={newTeam.logoUrl}
-            onChange={(e) => setNewTeam({ ...newTeam, logoUrl: e.target.value })}
-          />
-          <button 
-            onClick={handleAdd}
-            className="bg-pitch text-white rounded-xl font-black py-3 hover:bg-pitch-light"
-          >
-            Simpan Tim
-          </button>
+        <div className="bg-slate-50 p-6 rounded-3xl border-2 border-dashed border-slate-200 space-y-4 animate-in slide-in-from-top duration-300 text-left">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">Nama Tim</label>
+            <input 
+              placeholder="Nama Tim" 
+              className="p-3 rounded-xl border border-slate-200 font-bold bg-white text-sm w-full"
+              value={newTeam.name}
+              onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <LocalImageUploader 
+              label="Logo Tim"
+              placeholder="URL Logo (Opsional) atau pilih file..."
+              value={newTeam.logoUrl}
+              onChange={(val) => setNewTeam({ ...newTeam, logoUrl: val })}
+            />
+            <LocalImageUploader 
+              label="Foto / Banner Tim"
+              placeholder="URL Foto / Banner (Opsional) atau pilih file..."
+              value={newTeam.photoUrl}
+              onChange={(val) => setNewTeam({ ...newTeam, photoUrl: val })}
+            />
+          </div>
+          <div className="flex justify-end pt-2">
+            <button 
+              onClick={handleAdd}
+              className="bg-pitch text-white rounded-xl font-black px-8 py-3 hover:bg-pitch-light text-sm shadow-md transition-all"
+            >
+              Simpan Tim Baru
+            </button>
+          </div>
         </div>
       )}
 
@@ -898,20 +1505,29 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
             )}
           >
             {editingId === team.id ? (
-              <div className="space-y-3">
-                <input 
-                  className="w-full p-2 rounded-lg border border-slate-200 text-sm font-bold"
-                  value={editTeam.name}
-                  onChange={(e) => setEditTeam({ ...editTeam, name: e.target.value })}
-                  placeholder="Nama Tim"
-                />
-                <input 
-                  className="w-full p-2 rounded-lg border border-slate-200 text-sm font-bold"
+              <div className="space-y-3 text-left">
+                <div className="space-y-1">
+                  <label className="text-[9px] font-bold text-slate-400 uppercase pl-1">Nama Tim</label>
+                  <input 
+                    className="w-full p-2 rounded-lg border border-slate-200 text-sm font-bold"
+                    value={editTeam.name}
+                    onChange={(e) => setEditTeam({ ...editTeam, name: e.target.value })}
+                    placeholder="Nama Tim"
+                  />
+                </div>
+                <LocalImageUploader 
+                  label="Logo Tim"
+                  placeholder="URL Logo atau pilih file..."
                   value={editTeam.logoUrl}
-                  onChange={(e) => setEditTeam({ ...editTeam, logoUrl: e.target.value })}
-                  placeholder="URL Logo"
+                  onChange={(val) => setEditTeam({ ...editTeam, logoUrl: val })}
                 />
-                <div className="flex space-x-2">
+                <LocalImageUploader 
+                  label="Foto / Banner Tim"
+                  placeholder="URL Foto / Banner atau pilih file..."
+                  value={editTeam.photoUrl}
+                  onChange={(val) => setEditTeam({ ...editTeam, photoUrl: val })}
+                />
+                <div className="flex space-x-2 pt-1">
                   <button 
                     onClick={handleSaveEdit}
                     className="flex-1 bg-pitch text-white py-2 rounded-lg text-xs font-black flex items-center justify-center space-x-1"
@@ -936,7 +1552,14 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
                   </div>
                   <div>
                     <p className="font-black text-slate-800">{team.name}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Kabupaten Ciamis</p>
+                    <div className="flex items-center space-x-2">
+                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Kabupaten Ciamis</p>
+                       {team.photoUrl && (
+                         <span className="text-[8px] bg-emerald-50 text-emerald-600 px-1 py-0.5 rounded font-black leading-none border border-emerald-200/50 uppercase">
+                           FOTO TIM
+                         </span>
+                       )}
+                    </div>
                   </div>
                 </div>
 
@@ -980,8 +1603,171 @@ function TeamManager({ teams, seededIds, onRefresh }: { teams: Team[], seededIds
 function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: Player[], onRefresh: () => void }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [teamFilter, setTeamFilter] = useState('ALL');
-  const [newPlayer, setNewPlayer] = useState({ name: '', position: 'ST', teamId: '', goals: 0, birthDate: '2011-05-15' });
+  const [newPlayer, setNewPlayer] = useState({ name: '', position: 'ST', teamId: '', goals: 0, birthDate: '2011-05-15', photoUrl: '', jerseyNumber: '' });
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
+
+  const handleDownloadTemplateExcel = () => {
+    const wb = XLSX.utils.book_new();
+    const playersData = [
+      {
+        ID: "p-joko",
+        Nama: "Joko Widodo",
+        No_Punggung: 10,
+        Klub_ID: "t-ciamis-utara",
+        Klub: "CIAMIS UTARA FC",
+        Posisi_Utama: "ST",
+        Posisi_Tambahan: "LW",
+        Gol: 0,
+        Tanggal_Lahir: "2011-05-15",
+        Usia: 15,
+        FotoURL_Pemain: "",
+        PAC: 75,
+        SHO: 80,
+        PAS: 70,
+        DRI: 72,
+        DEF: 45,
+        PHY: 65
+      },
+      {
+        ID: "p-budi",
+        Nama: "Budi Anto",
+        No_Punggung: 1,
+        Klub_ID: "t-ciamis-selatan",
+        Klub: "CIAMIS SELATAN FC",
+        Posisi_Utama: "GK",
+        Posisi_Tambahan: "",
+        Gol: 0,
+        Tanggal_Lahir: "2011-02-10",
+        Usia: 15,
+        FotoURL_Pemain: "",
+        PAC: 68,
+        SHO: 70,
+        PAS: 65,
+        DRI: 72,
+        DEF: 74,
+        PHY: 70
+      }
+    ];
+    const playersWs = XLSX.utils.json_to_sheet(playersData);
+    XLSX.utils.book_append_sheet(wb, playersWs, "Data Pemain GSI");
+    XLSX.writeFile(wb, "Template_Impor_Pemain_GSI.xlsx");
+  };
+
+  const handleExportExcel = async () => {
+    const wb = XLSX.utils.book_new();
+    const playersData = players.map(p => ({
+      ID: p.id,
+      Nama: p.name,
+      No_Punggung: p.jerseyNumber !== undefined && p.jerseyNumber !== null ? p.jerseyNumber : '',
+      Klub_ID: p.teamId,
+      Klub: teams.find(t => t.id === p.teamId)?.name || p.teamId,
+      Posisi_Utama: p.position || '',
+      Posisi_Tambahan: p.secondaryPosition || '',
+      Gol: p.goals || 0,
+      Tanggal_Lahir: p.birthDate || '',
+      Usia: p.age || getAge(p.birthDate),
+      FotoURL_Pemain: p.photoUrl || '',
+      PAC: p.rating?.pac !== undefined ? p.rating.pac : 60,
+      SHO: p.rating?.sho !== undefined ? p.rating.sho : 60,
+      PAS: p.rating?.pas !== undefined ? p.rating.pas : 60,
+      DRI: p.rating?.dri !== undefined ? p.rating.dri : 60,
+      DEF: p.rating?.def !== undefined ? p.rating.def : 60,
+      PHY: p.rating?.phy !== undefined ? p.rating.phy : 60,
+    }));
+    const playersWs = XLSX.utils.json_to_sheet(playersData);
+    XLSX.utils.book_append_sheet(wb, playersWs, "Data Pemain GSI");
+    XLSX.writeFile(wb, `Data_Pemain_GSI_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!confirm('Impor data Excel akan menambah/memperbarui data Pemain GSI. Lanjutkan?')) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const importedPlayers: Player[] = [];
+
+        workbook.SheetNames.forEach(sheetName => {
+          const worksheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json<any>(worksheet);
+          if (jsonData.length === 0) return;
+
+          jsonData.forEach(row => {
+            const name = getRowValue(row, ['Nama', 'Nama_Pemain', 'Nama Pemain', 'name', 'Name', 'Player']);
+            const teamId = getRowValue(row, ['Klub_ID', 'KlubId', 'teamId', 'TeamId', 'Klub', 'Club', 'Nama Klub']);
+            if (!name) return;
+            const finalTeamId = teamId ? String(teamId) : '';
+
+            const id = getRowValue(row, ['id', 'ID', 'Id', 'playerId', 'player_id']) || `p-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+
+            const rawPac = getRowValue(row, ['PAC', 'pac', 'Pace', 'Pace_Rating']);
+            const rawSho = getRowValue(row, ['SHO', 'sho', 'Shooting', 'Shooting_Rating']);
+            const rawPas = getRowValue(row, ['PAS', 'pas', 'Passing', 'Passing_Rating']);
+            const rawDri = getRowValue(row, ['DRI', 'dri', 'Dribbling', 'Dribbling_Rating']);
+            const rawDef = getRowValue(row, ['DEF', 'def', 'Defending', 'Defending_Rating']);
+            const rawPhy = getRowValue(row, ['PHY', 'phy', 'Physical', 'Physical_Rating']);
+
+            const pacVal = rawPac !== undefined ? Number(rawPac) : 60;
+            const shoVal = rawSho !== undefined ? Number(rawSho) : 60;
+            const pasVal = rawPas !== undefined ? Number(rawPas) : 60;
+            const driVal = rawDri !== undefined ? Number(rawDri) : 60;
+            const defVal = rawDef !== undefined ? Number(rawDef) : 60;
+            const phyVal = rawPhy !== undefined ? Number(rawPhy) : 60;
+
+            const goalsVal = getRowValue(row, ['Gol', 'Goals', 'goals', 'Score']);
+            const jerseyNumberVal = getRowValue(row, ['No_Punggung', 'No Punggung', 'No', 'JerseyNumber', 'Jersey_Number', 'Jersey', 'Number']);
+            const birthDateVal = getRowValue(row, ['Tanggal_Lahir', 'Tanggal Lahir', 'birthDate', 'birth_date', 'BirthDate', 'Birthday']);
+            const ageVal = getRowValue(row, ['Usia', 'Age', 'age']);
+
+            const player: Player = {
+              id: String(id),
+              name: String(name),
+              teamId: finalTeamId,
+              goals: isNaN(Number(goalsVal)) ? 0 : Number(goalsVal),
+              position: String(getRowValue(row, ['Posisi_Utama', 'Posisi Utama', 'Posisi', 'Position', 'Pos']) || 'ST'),
+              secondaryPosition: getRowValue(row, ['Posisi_Tambahan', 'Posisi Tambahan', 'SecondaryPosition', 'Secondary_Position']) ? String(getRowValue(row, ['Posisi_Tambahan', 'Posisi Tambahan', 'SecondaryPosition', 'Secondary_Position'])) : undefined,
+              birthDate: parseExcelDate(birthDateVal),
+              age: isNaN(Number(ageVal)) ? undefined : Number(ageVal),
+              photoUrl: getRowValue(row, ['FotoURL_Pemain', 'Foto URL Pemain', 'photoUrl', 'PhotoURL_Player']) ? String(getRowValue(row, ['FotoURL_Pemain', 'Foto URL Pemain', 'photoUrl', 'PhotoURL_Player'])) : undefined,
+              jerseyNumber: (jerseyNumberVal !== undefined && !isNaN(Number(jerseyNumberVal))) ? Number(jerseyNumberVal) : undefined,
+              rating: {
+                pac: isNaN(pacVal) ? 60 : pacVal,
+                sho: isNaN(shoVal) ? 60 : shoVal,
+                pas: isNaN(pasVal) ? 60 : pasVal,
+                dri: isNaN(driVal) ? 60 : driVal,
+                def: isNaN(defVal) ? 60 : defVal,
+                phy: isNaN(phyVal) ? 60 : phyVal,
+              }
+            };
+            importedPlayers.push(player);
+          });
+        });
+
+        if (importedPlayers.length === 0) {
+          alert('Tidak ada data pemain yang valid ditemukan di file Excel.');
+          return;
+        }
+
+        const success = await store.importExcel([], importedPlayers, [], []);
+        if (success) {
+          alert(`Berhasil mengimpor ${importedPlayers.length} data Pemain GSI dari Excel!`);
+          onRefresh();
+        } else {
+          alert('Gagal mengimpor data Pemain dari Excel.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Gagal membaca file Excel. Error: ' + (err as Error).message);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+    e.target.value = '';
+  };
 
   const handleAdd = async () => {
     if (!newPlayer.name || !newPlayer.teamId) return;
@@ -994,9 +1780,11 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
       goals: Number(newPlayer.goals) || 0,
       rating: { pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 },
       birthDate: newPlayer.birthDate,
-      age: computedAge
+      age: computedAge,
+      photoUrl: newPlayer.photoUrl || undefined,
+      jerseyNumber: newPlayer.jerseyNumber ? Number(newPlayer.jerseyNumber) : undefined
     });
-    setNewPlayer({ name: '', position: 'ST', teamId: '', goals: 0, birthDate: '2011-05-15' });
+    setNewPlayer({ name: '', position: 'ST', teamId: '', goals: 0, birthDate: '2011-05-15', photoUrl: '', jerseyNumber: '' });
     onRefresh();
   };
 
@@ -1026,7 +1814,51 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
   });
 
   return (
-    <div className="p-8 space-y-12 animate-in fade-in duration-300">
+    <div className="p-8 space-y-8 animate-in fade-in duration-300">
+      {/* Title & Stats */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+        <div>
+          <h3 className="text-xl font-black text-slate-700 uppercase tracking-tight">Kelola Pemain</h3>
+          <p className="text-xs font-bold text-slate-400 italic">Total: {players.length} Pemain Terdaftar</p>
+        </div>
+      </div>
+
+      {/* Sleek Excel Data Panel */}
+      <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 shadow-sm">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-emerald-100 text-emerald-800 rounded-xl flex items-center justify-center shrink-0 border border-emerald-200">
+            <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
+          </div>
+          <div>
+            <h4 className="font-extrabold text-slate-700 text-sm">Alat Data Excel (Bagian Pemain)</h4>
+            <p className="text-slate-500 text-[11px] font-bold">Impor, ekspor, atau gunakan template Excel serbaguna khusus untuk data Pemain</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button 
+            onClick={handleDownloadTemplateExcel}
+            className="flex items-center space-x-1.5 bg-violet-50 hover:bg-violet-100 text-violet-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-violet-150 shadow-sm"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-violet-600" />
+            <span>Unduh Template</span>
+          </button>
+          
+          <label className="flex items-center space-x-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-emerald-150 cursor-pointer shadow-sm">
+            <Upload className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Unggah Excel</span>
+            <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleImportExcel} />
+          </label>
+
+          <button 
+            onClick={handleExportExcel}
+            className="flex items-center space-x-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 px-3.5 py-2 rounded-xl text-xs font-black transition-all border border-amber-150 shadow-sm"
+          >
+            <Download className="w-3.5 h-3.5 text-amber-600" />
+            <span>Unduh Excel</span>
+          </button>
+        </div>
+      </div>
+
       {/* Edit Form Modal/Section */}
       {editingPlayer && (
         <div className="bg-amber-50 p-8 rounded-3xl border-2 border-dashed border-amber-250 space-y-6">
@@ -1034,13 +1866,23 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
             <Edit2 className="w-5 h-5 animate-pulse" />
             <span>Edit Profil Pemain</span>
           </h4>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
             <div className="space-y-1">
               <label className="text-[10px] font-bold text-slate-400 uppercase">Nama Pemain</label>
               <input 
                 className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500"
                 value={editingPlayer.name}
                 onChange={(e) => setEditingPlayer({...editingPlayer, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase">No. Punggung</label>
+              <input 
+                type="number"
+                placeholder="No"
+                className="w-full p-3 rounded-xl border border-amber-200 font-bold bg-white focus:outline-none focus:border-amber-500"
+                value={editingPlayer.jerseyNumber !== undefined && editingPlayer.jerseyNumber !== null ? editingPlayer.jerseyNumber : ''}
+                onChange={(e) => setEditingPlayer({...editingPlayer, jerseyNumber: e.target.value ? Number(e.target.value) : undefined})}
               />
             </div>
             <div className="space-y-1">
@@ -1093,6 +1935,57 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
               </select>
             </div>
           </div>
+
+          {/* Photo URL & Presets selection */}
+          <div className="p-4 bg-white rounded-2xl border border-amber-150 space-y-3">
+            <p className="text-xs font-bold text-amber-800 uppercase tracking-widest">Foto / Avatar Pemain</p>
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <div className="flex-1 w-full">
+                <LocalImageUploader 
+                  label="URL Foto / File Foto Pemain"
+                  placeholder="https://images.unsplash.com/... atau pilih file komputer"
+                  value={editingPlayer.photoUrl || ''}
+                  onChange={(val) => setEditingPlayer({...editingPlayer, photoUrl: val})}
+                />
+              </div>
+              <div className="space-y-1 w-full lg:w-auto shrink-0">
+                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Preset avatar instan (Dicebear):</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: 'Kiper', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=GK' },
+                    { name: 'Bek', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=DEF' },
+                    { name: 'Playmaker', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=MID' },
+                    { name: 'Striker', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=ST' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => setEditingPlayer({...editingPlayer, photoUrl: preset.url})}
+                      className={cn(
+                        "flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all",
+                        editingPlayer.photoUrl === preset.url
+                          ? "bg-amber-100 border-amber-400 text-amber-800"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                      )}
+                    >
+                      <img src={preset.url} alt={preset.name} className="w-4 h-4 rounded-full object-cover" referrerPolicy="no-referrer" />
+                      <span>{preset.name}</span>
+                    </button>
+                  ))}
+                  {editingPlayer.photoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingPlayer({...editingPlayer, photoUrl: ''})}
+                      className="px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-105 text-[10px] font-bold"
+                    >
+                      Kosongkan Foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end space-x-3">
             <button 
               onClick={() => setEditingPlayer(null)}
@@ -1125,6 +2018,16 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
                 className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:border-pitch"
                 value={newPlayer.name}
                 onChange={(e) => setNewPlayer({...newPlayer, name: e.target.value})}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-slate-400 uppercase pl-1">No. Punggung</label>
+              <input 
+                type="number"
+                placeholder="No"
+                className="w-full p-3 rounded-xl border border-slate-200 font-bold text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:border-pitch"
+                value={newPlayer.jerseyNumber}
+                onChange={(e) => setNewPlayer({...newPlayer, jerseyNumber: e.target.value})}
               />
             </div>
             <div className="space-y-1">
@@ -1167,12 +2070,65 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
                 {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
               </select>
             </div>
+          </div>
+
+          {/* Photo URL & Presets selection for Add Form */}
+          <div className="p-4 bg-white rounded-2xl border border-slate-150 space-y-3">
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-widest">Foto / Avatar Pemain</p>
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <div className="flex-1 w-full">
+                <LocalImageUploader 
+                  label="URL Foto / File Foto Pemain"
+                  placeholder="https://images.unsplash.com/... atau pilih file komputer"
+                  value={newPlayer.photoUrl}
+                  onChange={(val) => setNewPlayer({...newPlayer, photoUrl: val})}
+                />
+              </div>
+              <div className="space-y-1 w-full lg:w-auto shrink-0">
+                <label className="text-[10px] font-semibold text-slate-400 block mb-1">Preset avatar instan (Dicebear):</label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: 'Kiper', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=GK' },
+                    { name: 'Bek', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=DEF' },
+                    { name: 'Playmaker', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=MID' },
+                    { name: 'Striker', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=ST' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => setNewPlayer({...newPlayer, photoUrl: preset.url})}
+                      className={cn(
+                        "flex items-center space-x-1 px-2 py-1 rounded-lg border text-[10px] font-bold transition-all",
+                        newPlayer.photoUrl === preset.url
+                          ? "bg-pitch/10 border-pitch text-pitch"
+                          : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                      )}
+                    >
+                      <img src={preset.url} alt={preset.name} className="w-4 h-4 rounded-full object-cover" referrerPolicy="no-referrer" />
+                      <span>{preset.name}</span>
+                    </button>
+                  ))}
+                  {newPlayer.photoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setNewPlayer({...newPlayer, photoUrl: ''})}
+                      className="px-2 py-1 rounded-lg border border-red-200 bg-red-50 text-red-600 hover:bg-red-105 text-[10px] font-bold"
+                    >
+                      Kosongkan Foto
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
             <button 
               onClick={handleAdd}
               disabled={!newPlayer.name || !newPlayer.teamId}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black py-3 px-6 shadow-lg transition-all disabled:opacity-50 disabled:hover:bg-slate-900 h-[46px]"
+              className="px-8 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-black shadow-lg transition-all disabled:opacity-50 disabled:hover:bg-slate-900"
             >
-              Simpan Pemain
+              Simpan Pemain Baru
             </button>
           </div>
         </div>
@@ -1208,6 +2164,11 @@ function PlayerManager({ teams, players, onRefresh }: { teams: Team[], players: 
                 <div className="space-y-1 text-left">
                   <p className="font-extrabold text-slate-800 tracking-tight">{p.name}</p>
                   <div className="flex items-center flex-wrap gap-1.5 mt-1">
+                    {p.jerseyNumber !== undefined && p.jerseyNumber !== null && (
+                      <span className="text-[9px] font-black uppercase text-rose-700 bg-rose-50 px-2 py-0.5 rounded-md border border-rose-100">
+                        #{p.jerseyNumber}
+                      </span>
+                    )}
                     <span className="text-[9px] font-black uppercase text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-100">
                       {p.position || 'ST'}
                     </span>

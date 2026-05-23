@@ -107,6 +107,11 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
         <div className="flex flex-col items-center">
           <span className="text-4xl font-black tracking-tight filter drop-shadow-sm">{overall}</span>
           <span className="text-xs font-black tracking-widest uppercase mt-0.5 bg-black/5 px-1.5 py-0.5 rounded">{position}</span>
+          {player.jerseyNumber !== undefined && player.jerseyNumber !== null && (
+            <span className="text-[10px] font-black tracking-wider uppercase mt-1 bg-red-600 text-white px-2 py-0.5 rounded shadow-sm border border-red-500 leading-none">
+              #{player.jerseyNumber}
+            </span>
+          )}
           {hasSecondary && (
             <button
               type="button"
@@ -129,28 +134,41 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
           </div>
 
           {/* Logo and Full Team Name on Card Face */}
-          <div className="flex flex-col items-center mt-2.5 w-14">
+          <div className="flex flex-row items-center justify-center mt-2.5 w-16 -mx-1 gap-1">
             {team?.logoUrl ? (
-              <img src={team.logoUrl} alt={team.name} className="w-5 h-5 rounded-full object-cover border border-black/10 mb-0.5" referrerPolicy="no-referrer" />
+              <img src={team.logoUrl} alt={team.name} className="w-4 h-4 rounded-full object-cover border border-black/10 shrink-0" referrerPolicy="no-referrer" />
             ) : null}
-            <span className="text-[7.5px] font-black leading-tight bg-black/10 px-1 py-0.5 rounded uppercase text-center w-full break-words max-h-8 overflow-hidden line-clamp-2" title={team?.name || 'GSI'}>
+            <span className="text-[7px] font-black leading-tight bg-black/10 px-1 py-0.5 rounded uppercase text-center max-w-[48px] truncate" title={team?.name || 'GSI'}>
               {team?.name || 'GSI'}
             </span>
           </div>
         </div>
 
-        {/* Player Silhouette Drawing */}
+        {/* Player Silhouette Drawing / Photo */}
         <div className="relative w-24 h-24 flex items-end justify-center overflow-hidden">
           <div className="absolute inset-0 rounded-full bg-black/5 flex items-center justify-center">
-            {team?.logoUrl ? (
+            {player.photoUrl ? null : team?.logoUrl ? (
               <img src={team.logoUrl} alt="avatar" className="w-14 h-14 rounded-full object-cover opacity-15 filter grayscale" referrerPolicy="no-referrer" />
             ) : (
               <User className="w-12 h-12 text-black/10" />
             )}
           </div>
-          <div className="z-10 font-bold text-4xl text-white/20 uppercase tracking-tighter">
-            {player.name.substring(0, 2).toUpperCase()}
-          </div>
+          {player.photoUrl ? (
+            <img 
+              src={player.photoUrl} 
+              alt={player.name} 
+              className="w-full h-full object-cover object-top z-10 absolute bottom-0 select-none" 
+              referrerPolicy="no-referrer"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = ''; 
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <div className="z-10 font-bold text-4xl text-white/20 uppercase tracking-tighter">
+              {player.name.substring(0, 2).toUpperCase()}
+            </div>
+          )}
         </div>
       </div>
 
@@ -183,8 +201,8 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
             <span className={textMuted}>HAN</span>
             <span className="font-extrabold">{rating.sho}</span>
           </div>
-          <div className="flex justify-between pl-2" title="Speed">
-            <span className={textMuted}>SPD</span>
+          <div className="flex justify-between pl-2" title="Physical">
+            <span className={textMuted}>PHY</span>
             <span className="font-extrabold">{rating.def}</span>
           </div>
           <div className="flex justify-between border-r border-black/10 pr-2" title="Kicking">
@@ -318,7 +336,10 @@ const sortPlayersBySoccerRole = (plist: Player[]) => {
   return [...plist].sort((a, b) => getRolePriority(a.position) - getRolePriority(b.position));
 };
 
-const getPlayerJerseyNumber = (role: string, playerName: string): number => {
+const getPlayerJerseyNumber = (role: string, playerName: string, player?: Player): number => {
+  if (player && player.jerseyNumber !== undefined && player.jerseyNumber !== null) {
+    return player.jerseyNumber;
+  }
   const cleanRole = (role || '').toUpperCase().trim();
   let baseJersey = 9;
   switch (cleanRole) {
@@ -628,7 +649,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
       { key: 'sho', valueA: rA.sho, valueB: rB.sho, label: pA.position === 'GK' ? 'Handling' : 'Shooting (Menembak)' },
       { key: 'pas', valueA: rA.pas, valueB: rB.pas, label: pA.position === 'GK' ? 'Kicking' : 'Passing (Mengoper)' },
       { key: 'dri', valueA: rA.dri, valueB: rB.dri, label: pA.position === 'GK' ? 'Reflexes' : 'Dribbling (Menggiring)' },
-      { key: 'def', valueA: rA.def, valueB: rB.def, label: pA.position === 'GK' ? 'Speed' : 'Defending (Bertahan)' },
+      { key: 'def', valueA: rA.def, valueB: rB.def, label: pA.position === 'GK' ? 'Physical (Fisik)' : 'Defending (Bertahan)' },
       { key: 'phy', valueA: rA.phy, valueB: rB.phy, label: pA.position === 'GK' ? 'Positioning' : 'Physical (Fisik)' },
     ];
 
@@ -1051,7 +1072,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                           {/* Secondary Slider 5 */}
                           <div className="space-y-1 font-sans">
                             <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'SPD' : 'DEF (BERTAHAN)'}</span>
+                              <span>{secondaryPosition === 'GK' ? 'PHY' : 'DEF (BERTAHAN)'}</span>
                               <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.def}</span>
                             </label>
                             <input 
@@ -1139,7 +1160,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                   {/* Slider 5 */}
                   <div className="space-y-1 font-sans">
                     <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'SPD (LARI)' : 'DEF (BERTAHAN)'}</span>
+                      <span>{position === 'GK' ? 'PHY (FISIK)' : 'DEF (BERTAHAN)'}</span>
                       <span className="text-amber-400 font-black font-mono">{ratings.def}</span>
                     </label>
                     <input 
@@ -1522,7 +1543,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                         {ovr}
                       </span>
                       {/* Jersey number inside player node on the field */}
-                      <span className="text-[6.5px] md:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name)}</span>
+                      <span className="text-[6.5px] md:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name, p)}</span>
                     </div>
 
                     {/* Name block */}
@@ -1565,7 +1586,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                         {ovr}
                       </span>
                       {/* Jersey number inside player node on the field */}
-                      <span className="text-[6.5px] md:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name)}</span>
+                      <span className="text-[6.5px] md:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name, p)}</span>
                     </div>
 
                     {/* Name block */}
@@ -1672,10 +1693,15 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                           )}
                         >
                           <div className="flex items-center space-x-2">
-                            <span className="bg-slate-100 text-slate-500 text-[8.5px] px-1 py-0.5 rounded font-black w-8 text-center">{p.position || 'ST'}</span>
+                            <span className="bg-slate-100 text-slate-500 text-[8.5px] px-1 py-0.5 rounded font-black w-8 text-center shrink-0">{p.position || 'ST'}</span>
+                            {p.jerseyNumber !== undefined && p.jerseyNumber !== null && (
+                              <span className="bg-rose-50 text-rose-700 border border-rose-100 text-[8.5px] px-1.5 py-0.2 rounded font-black shrink-0">
+                                #{p.jerseyNumber}
+                              </span>
+                            )}
                             <span className="truncate max-w-[130px] font-semibold text-slate-700">{p.name}</span>
                           </div>
-                          <span className="text-[8.5px] bg-slate-900 text-yellow-300 rounded px-1.5 py-0.5 font-black">{ovr} OVR</span>
+                          <span className="text-[8.5px] bg-slate-900 text-yellow-300 rounded px-1.5 py-0.5 font-black shrink-0">{ovr} OVR</span>
                         </div>
                       );
                     })}
@@ -1710,10 +1736,15 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                           )}
                         >
                           <div className="flex items-center space-x-2">
-                            <span className="bg-slate-100 text-slate-500 text-[8.5px] px-1 py-0.5 rounded font-black w-8 text-center">{p.position || 'ST'}</span>
+                            <span className="bg-slate-100 text-slate-500 text-[8.5px] px-1 py-0.5 rounded font-black w-8 text-center shrink-0">{p.position || 'ST'}</span>
+                            {p.jerseyNumber !== undefined && p.jerseyNumber !== null && (
+                              <span className="bg-rose-50 text-rose-700 border border-rose-100 text-[8.5px] px-1.5 py-0.2 rounded font-black shrink-0">
+                                #{p.jerseyNumber}
+                              </span>
+                            )}
                             <span className="truncate max-w-[130px] font-semibold text-slate-700">{p.name}</span>
                           </div>
-                          <span className="text-[8.5px] bg-slate-900 text-yellow-300 rounded px-1.5 py-0.5 font-black">{ovr} OVR</span>
+                          <span className="text-[8.5px] bg-slate-900 text-yellow-300 rounded px-1.5 py-0.5 font-black shrink-0">{ovr} OVR</span>
                         </div>
                       );
                     })}

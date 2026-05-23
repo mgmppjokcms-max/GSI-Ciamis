@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Player, Team } from '../types';
-import { User, Medal, Trophy, Filter } from 'lucide-react';
+import { User, Medal, Trophy, Filter, Sparkles, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { FutCard } from './ScoutView';
+import { motion, AnimatePresence } from 'motion/react';
 
 export default function ScorersView({ players, teams }: { players: Player[], teams: Team[] }) {
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   const [teamFilter, setTeamFilter] = useState<string>('ALL');
 
   const filteredPlayers = teamFilter === 'ALL' 
@@ -58,54 +61,58 @@ export default function ScorersView({ players, teams }: { players: Player[], tea
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {sortedPlayers.length > 0 ? sortedPlayers.map((player, idx) => {
-                const team = teams.find(t => t.id === player.teamId);
-                return (
-                  <tr key={player.id} className="hover:bg-slate-50 transition-colors group">
-                    <td className="px-8 py-6">
-                      <div className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center font-black text-sm",
-                        idx === 0 ? "bg-yellow-400 text-yellow-900" :
-                        idx === 1 ? "bg-slate-300 text-slate-700" :
-                        idx === 2 ? "bg-amber-600 text-white" :
-                        "bg-slate-100 text-slate-400"
-                      )}>
-                        {idx + 1}
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-pitch group-hover:text-white transition-colors">
-                          <User className="w-5 h-5" />
-                        </div>
-                        <span className="font-bold text-slate-800 text-lg">{player.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden border border-slate-200 flex-shrink-0">
-                          {team?.logoUrl && <img src={team.logoUrl} alt={team.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />}
-                        </div>
-                        <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wide">
-                          {team?.name || 'Unknown'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <span className="text-2xl font-black text-pitch">{player.goals}</span>
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">GOL</span>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              }) : (
-                <tr>
-                  <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-medium italic">
-                    Belum ada data pencetak gol terpantau.
-                  </td>
-                </tr>
-              )}
+               {sortedPlayers.length > 0 ? sortedPlayers.map((player, idx) => {
+                 const team = teams.find(t => t.id === player.teamId);
+                 return (
+                   <tr 
+                     key={player.id} 
+                     onClick={() => setSelectedPlayer(player)}
+                     className="hover:bg-slate-50 transition-colors group cursor-pointer"
+                   >
+                     <td className="px-8 py-6">
+                       <div className={cn(
+                         "w-8 h-8 rounded-full flex items-center justify-center font-black text-sm",
+                         idx === 0 ? "bg-yellow-400 text-yellow-900" :
+                         idx === 1 ? "bg-slate-300 text-slate-700" :
+                         idx === 2 ? "bg-amber-600 text-white" :
+                         "bg-slate-100 text-slate-400"
+                       )}>
+                         {idx + 1}
+                       </div>
+                     </td>
+                     <td className="px-8 py-6">
+                       <div className="flex items-center space-x-4">
+                         <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 group-hover:bg-pitch group-hover:text-white transition-colors">
+                           <User className="w-5 h-5" />
+                         </div>
+                         <span className="font-bold text-slate-800 text-lg group-hover:text-pitch transition-colors">{player.name}</span>
+                       </div>
+                     </td>
+                     <td className="px-8 py-6">
+                       <div className="flex items-center space-x-2">
+                         <div className="w-6 h-6 rounded-full bg-slate-100 overflow-hidden border border-slate-200 flex-shrink-0">
+                           {team?.logoUrl && <img src={team.logoUrl} alt={team.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />}
+                         </div>
+                         <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wide">
+                           {team?.name || 'Unknown'}
+                         </span>
+                       </div>
+                     </td>
+                     <td className="px-8 py-6 text-right">
+                       <div className="flex items-center justify-end space-x-2">
+                         <span className="text-2xl font-black text-pitch">{player.goals}</span>
+                         <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">GOL</span>
+                       </div>
+                     </td>
+                   </tr>
+                 );
+               }) : (
+                 <tr>
+                   <td colSpan={4} className="px-8 py-20 text-center text-slate-400 font-medium italic">
+                     Belum ada data pencetak gol terpantau.
+                   </td>
+                 </tr>
+               )}
             </tbody>
           </table>
         </div>
@@ -127,6 +134,82 @@ export default function ScorersView({ players, teams }: { players: Player[], tea
             <Medal className="w-12 h-12 opacity-20 text-white" />
          </div>
       </div>
+
+      {/* FUT Card Details Modal Popup */}
+      <AnimatePresence>
+        {selectedPlayer && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 cursor-pointer"
+            onClick={() => setSelectedPlayer(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-slate-900 border border-slate-700/60 p-6 rounded-3xl relative text-center flex flex-col items-center justify-center max-w-sm w-full cursor-default shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-yellow-400 text-xs font-black tracking-widest uppercase mb-4 flex items-center gap-1.5 justify-center">
+                <Sparkles className="w-4 h-4 text-amber-400" /> Detail Kartu FUT Pemain
+              </h3>
+
+              {/* FutCard itself */}
+              <div className="flex justify-center mb-6">
+                <FutCard 
+                  player={selectedPlayer} 
+                  team={teams.find(t => t.id === selectedPlayer.teamId)}
+                  globalShowCustom={true} // flip to show custom attributes
+                />
+              </div>
+
+              <div className="space-y-4 w-full">
+                <p className="text-sm font-extrabold text-white tracking-wide uppercase">
+                  {selectedPlayer.name}
+                </p>
+                {teams.find(t => t.id === selectedPlayer.teamId) && (
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Klub: <span className="text-pitch">{teams.find(t => t.id === selectedPlayer.teamId)?.name}</span>
+                  </p>
+                )}
+                <div className="bg-slate-800/80 border border-slate-700/50 p-3.5 rounded-2xl text-[11px] font-bold text-slate-300 text-left space-y-1">
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span>Posisi Utama:</span>
+                    <span className="text-yellow-400 uppercase font-extrabold">{selectedPlayer.position}</span>
+                  </div>
+                  {selectedPlayer.secondaryPosition && (
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Posisi Tambahan:</span>
+                      <span className="text-amber-500 uppercase font-extrabold">{selectedPlayer.secondaryPosition}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Jumlah Gol:</span>
+                    <span className="text-green-400 font-extrabold">{selectedPlayer.goals || 0} GOL</span>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="mt-6 w-full py-3 bg-slate-800 hover:bg-slate-755 hover:text-white active:bg-slate-950 text-slate-200 rounded-xl font-bold uppercase text-[11.5px] tracking-widest transition-all border border-slate-700"
+              >
+                Tutup Kartu
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

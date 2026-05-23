@@ -36,6 +36,8 @@ export default function App() {
   const [currentView, setCurrentView] = useState<View>('home');
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [backView, setBackView] = useState<View>('standings');
+  const [initialTeamsPlayersSegment, setInitialTeamsPlayersSegment] = useState<'teams' | 'players'>('teams');
+  const [initialTeamsPlayersFilter, setInitialTeamsPlayersFilter] = useState<string>('ALL');
   const [teams, setTeams] = useState<Team[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -124,6 +126,10 @@ export default function App() {
                   onClick={() => {
                      setCurrentView(item.id as View);
                      setSelectedTeamId(null);
+                     if (item.id === 'teams-players') {
+                       setInitialTeamsPlayersSegment('teams');
+                       setInitialTeamsPlayersFilter('ALL');
+                     }
                   }}
                   title={item.label}
                   className={cn(
@@ -165,7 +171,15 @@ export default function App() {
             {currentView === 'standings' && <StandingsView teams={teams} matches={matches} seededIds={seededIds} onTeamClick={navigateToTeam} />}
             {currentView === 'schedule' && <ScheduleView matches={matches} teams={teams} />}
             {currentView === 'scorers' && <ScorersView players={players} teams={teams} />}
-            {currentView === 'teams-players' && <TeamsPlayersView teams={teams} players={players} onTeamClick={(teamId) => navigateToTeam(teamId, 'teams-players')} />}
+            {currentView === 'teams-players' && (
+              <TeamsPlayersView 
+                teams={teams} 
+                players={players} 
+                onTeamClick={(teamId) => navigateToTeam(teamId, 'teams-players')} 
+                initialSegment={initialTeamsPlayersSegment}
+                initialFilter={initialTeamsPlayersFilter}
+              />
+            )}
             {currentView === 'scout' && <ScoutView players={players} teams={teams} matches={matches} onRefresh={loadData} />}
             {currentView === 'admin' && <AdminView teams={teams} matches={matches} players={players} seededIds={seededIds} onRefresh={loadData} />}
             {currentView === 'team-detail' && selectedTeam && (
@@ -175,6 +189,12 @@ export default function App() {
                 players={players} 
                 allTeams={teams} 
                 onBack={() => setCurrentView(backView)} 
+                onGoToPlayersList={(teamId) => {
+                  setInitialTeamsPlayersSegment('players');
+                  setInitialTeamsPlayersFilter(teamId);
+                  setCurrentView('teams-players');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
               />
             )}
           </motion.div>
@@ -187,7 +207,13 @@ export default function App() {
           {navItems.map((item) => (
             <button
               key={item.id}
-              onClick={() => setCurrentView(item.id as View)}
+              onClick={() => {
+                setCurrentView(item.id as View);
+                if (item.id === 'teams-players') {
+                  setInitialTeamsPlayersSegment('teams');
+                  setInitialTeamsPlayersFilter('ALL');
+                }
+              }}
               className={cn(
                 "flex flex-col items-center justify-center p-0.5 rounded-lg transition-colors",
                 currentView === item.id ? "text-pitch" : "text-slate-400"

@@ -12,6 +12,7 @@ export interface Team {
   awayWins: number;
   points: number;
   group?: string; // e.g., 'A', 'B', 'C', 'D'
+  photoUrl?: string; // Team Photo
 }
 
 export type MatchStatus = 'SCHEDULED' | 'LIVE' | 'FINISHED';
@@ -52,6 +53,8 @@ export interface Player {
   secondaryCustomAttributes?: { name: string; value: string }[];
   birthDate?: string;
   age?: number;
+  photoUrl?: string;
+  jerseyNumber?: number;
 }
 
 export interface Official {
@@ -59,6 +62,7 @@ export interface Official {
   name: string;
   role: string;
   teamId: string;
+  photoUrl?: string;
 }
 
 export interface Goal {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Team, Player } from '../types';
 import { 
@@ -13,7 +13,8 @@ import {
   Sparkles,
   Zap,
   Activity,
-  Award
+  Award,
+  X
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { FutCard } from './ScoutView';
@@ -22,12 +23,29 @@ interface TeamsPlayersViewProps {
   teams: Team[];
   players: Player[];
   onTeamClick: (teamId: string) => void;
+  initialSegment?: 'teams' | 'players';
+  initialFilter?: string;
 }
 
-export default function TeamsPlayersView({ teams, players, onTeamClick }: TeamsPlayersViewProps) {
-  const [activeSegment, setActiveSegment] = useState<'teams' | 'players'>('teams');
+export default function TeamsPlayersView({ 
+  teams, 
+  players, 
+  onTeamClick,
+  initialSegment = 'teams',
+  initialFilter = 'ALL'
+}: TeamsPlayersViewProps) {
+  const [activeSegment, setActiveSegment] = useState<'teams' | 'players'>(initialSegment);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTeamFilter, setSelectedTeamFilter] = useState<string>('ALL');
+  const [selectedTeamFilter, setSelectedTeamFilter] = useState<string>(initialFilter);
+
+  // Sync state when navigation initial choices change
+  useEffect(() => {
+    setActiveSegment(initialSegment);
+  }, [initialSegment]);
+
+  useEffect(() => {
+    setSelectedTeamFilter(initialFilter);
+  }, [initialFilter]);
   const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
 
   // List of player positions for category styling
@@ -258,10 +276,87 @@ export default function TeamsPlayersView({ teams, players, onTeamClick }: TeamsP
                     key={player.id}
                     player={player}
                     team={team}
+                    onClick={() => setSelectedPlayer(player)}
                   />
                 );
               })
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* FUT Card Details Modal Popup */}
+      <AnimatePresence>
+        {selectedPlayer && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 cursor-pointer"
+            onClick={() => setSelectedPlayer(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-slate-900 border border-slate-700/60 p-6 rounded-3xl relative text-center flex flex-col items-center justify-center max-w-sm w-full cursor-default shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-yellow-400 text-xs font-black tracking-widest uppercase mb-4 flex items-center gap-1.5 justify-center">
+                <Sparkles className="w-4 h-4 text-amber-400" /> Detail Kartu FUT Pemain
+              </h3>
+
+              {/* FutCard itself */}
+              <div className="flex justify-center mb-6">
+                <FutCard 
+                  player={selectedPlayer} 
+                  team={teamOfSelectedPlayer || undefined}
+                  globalShowCustom={true} // flip to show custom attributes
+                />
+              </div>
+
+              <div className="space-y-4 w-full">
+                <p className="text-sm font-extrabold text-white tracking-wide uppercase">
+                  {selectedPlayer.name}
+                </p>
+                {teamOfSelectedPlayer && (
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    Klub: <span className="text-pitch">{teamOfSelectedPlayer.name}</span>
+                  </p>
+                )}
+                <div className="bg-slate-800/80 border border-slate-700/50 p-3.5 rounded-2xl text-[11px] font-bold text-slate-300 text-left space-y-1">
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span>Posisi Utama:</span>
+                    <span className="text-yellow-400 uppercase font-extrabold">{selectedPlayer.position}</span>
+                  </div>
+                  {selectedPlayer.secondaryPosition && (
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Posisi Tambahan:</span>
+                      <span className="text-amber-500 uppercase font-extrabold">{selectedPlayer.secondaryPosition}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Jumlah Gol:</span>
+                    <span className="text-green-400 font-extrabold">{selectedPlayer.goals || 0} GOL</span>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="mt-6 w-full py-3 bg-slate-800 hover:bg-slate-755 hover:text-white active:bg-slate-950 text-slate-200 rounded-xl font-bold uppercase text-[11.5px] tracking-widest transition-all border border-slate-700"
+              >
+                Tutup Kartu
+              </button>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

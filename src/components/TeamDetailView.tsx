@@ -1,7 +1,10 @@
-import React from 'react';
-import { Team, Match, Player } from '../types';
-import { ChevronLeft, Trophy, Calendar, Users, Zap, Shield } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Team, Match, Player, Official } from '../types';
+import { ChevronLeft, Trophy, Calendar, Users, Zap, Shield, Sparkles, X, Globe } from 'lucide-react';
 import { formatDate, cn } from '../lib/utils';
+import { store } from '../services/store';
+import { FutCard } from './ScoutView';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface TeamDetailViewProps {
   team: Team;
@@ -9,9 +12,18 @@ interface TeamDetailViewProps {
   players: Player[];
   allTeams: Team[];
   onBack: () => void;
+  onGoToPlayersList?: (teamId: string) => void;
 }
 
-export default function TeamDetailView({ team, matches, players, allTeams, onBack }: TeamDetailViewProps) {
+export default function TeamDetailView({ team, matches, players, allTeams, onBack, onGoToPlayersList }: TeamDetailViewProps) {
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [officials, setOfficials] = useState<Official[]>([]);
+
+  useEffect(() => {
+    store.getOfficials().then(allOfficials => {
+      setOfficials(allOfficials.filter(o => o.teamId === team.id));
+    });
+  }, [team.id]);
   const teamMatches = matches
     .filter(m => m.teamAId === team.id || m.teamBId === team.id)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -37,44 +49,75 @@ export default function TeamDetailView({ team, matches, players, allTeams, onBac
         className="flex items-center space-x-2 text-slate-500 hover:text-pitch transition-colors font-bold group"
       >
         <ChevronLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-        <span>Kembali ke Klasemen</span>
+        <span>Kembali</span>
       </button>
 
       {/* Header Profile */}
-      <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 p-8 opacity-5">
-           <Shield className="w-64 h-64 text-pitch" />
-        </div>
-        
-        <div className="flex flex-col md:flex-row items-center gap-8 relative z-10">
-          <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-full flex items-center justify-center overflow-hidden border-4 border-slate-50 shadow-2xl">
-            {team.logoUrl ? (
-              <img src={team.logoUrl} alt={team.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center font-black text-4xl text-slate-300">
-                {team.name.charAt(0)}
+      <div className="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden relative flex flex-col">
+        {team.photoUrl ? (
+          <div className="h-56 md:h-72 w-full overflow-hidden relative">
+            <img src={team.photoUrl} alt="Team Banner" className="w-full h-full object-cover select-none" referrerPolicy="no-referrer" />
+            <div className="absolute inset-x-0 bottom-0 top-1/4 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent" />
+            
+            <div className="absolute bottom-6 left-8 right-8 flex flex-col md:flex-row items-center md:items-end gap-5 text-white z-10">
+              <div className="w-24 h-24 md:w-28 md:h-28 bg-white rounded-full flex items-center justify-center overflow-hidden border-2 border-white shadow-2xl shrink-0">
+                {team.logoUrl ? (
+                  <img src={team.logoUrl} alt={team.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center font-black text-3xl text-slate-300">
+                    {team.name.charAt(0)}
+                  </div>
+                )}
               </div>
-            )}
+              <div className="text-center md:text-left space-y-2">
+                <h2 className="text-2xl md:text-4xl font-black italic tracking-tight drop-shadow-md text-white">{team.name}</h2>
+                <div className="flex items-center justify-center md:justify-start space-x-2 mt-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[9px] font-black uppercase tracking-wider backdrop-blur-md border border-white/15">
+                    Grup {team.group || '-'}
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-yellow-400 text-slate-900 text-[9px] font-black uppercase tracking-wider">
+                    Posisi {standingPos}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
+        ) : (
+          <div className="p-8 relative flex flex-col md:flex-row items-center gap-8 z-10">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+               <Shield className="w-64 h-64 text-pitch" />
+            </div>
+            <div className="w-32 h-32 md:w-40 md:h-40 bg-white rounded-full flex items-center justify-center overflow-hidden border-4 border-slate-50 shadow-2xl shrink-0">
+              {team.logoUrl ? (
+                <img src={team.logoUrl} alt={team.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center font-black text-4xl text-slate-300">
+                  {team.name.charAt(0)}
+                </div>
+              )}
+            </div>
 
-          <div className="text-center md:text-left space-y-4">
-            <div className="space-y-1">
-              <h2 className="text-4xl font-black italic text-pitch-dark tracking-tight">{team.name}</h2>
-              <div className="flex items-center justify-center md:justify-start space-x-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-200">
-                  Grup {team.group || '-'}
-                </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-pitch/10 text-pitch text-[10px] font-black uppercase tracking-widest border border-pitch/20">
-                  Posisi {standingPos}
-                </span>
+            <div className="text-center md:text-left space-y-4">
+              <div className="space-y-1">
+                <h2 className="text-4xl font-black italic text-pitch-dark tracking-tight">{team.name}</h2>
+                <div className="flex items-center justify-center md:justify-start space-x-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black uppercase tracking-widest border border-slate-200">
+                    Grup {team.group || '-'}
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full bg-pitch/10 text-pitch text-[10px] font-black uppercase tracking-widest border border-pitch/20">
+                    Posisi {standingPos}
+                  </span>
+                </div>
               </div>
             </div>
-            <div className="flex flex-wrap justify-center md:justify-start gap-4">
-               <StatCard label="Poin" value={team.points} icon={Trophy} color="bg-yellow-400" />
-               <StatCard label="Menang" value={team.won} icon={Zap} color="bg-green-500" />
-               <StatCard label="SG" value={team.goalsFor - team.goalsAgainst} icon={Shield} color="bg-pitch" />
-            </div>
           </div>
+        )}
+
+        {/* Stats Section */}
+        <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-4 justify-center md:justify-start">
+           <StatCard label="Poin" value={team.points} icon={Trophy} color="bg-yellow-400" />
+           <StatCard label="Menang" value={team.won} icon={Zap} color="bg-green-500" />
+           <StatCard label="SG" value={team.goalsFor - team.goalsAgainst} icon={Shield} color="bg-pitch" />
         </div>
       </div>
 
@@ -99,9 +142,17 @@ export default function TeamDetailView({ team, matches, players, allTeams, onBac
 
         {/* Squad List */}
         <div className="space-y-6">
-          <h3 className="text-xl font-black italic flex items-center space-x-2">
-            <Users className="w-5 h-5 text-pitch" />
-            <span>Daftar Pemain</span>
+          <h3 
+            onClick={() => onGoToPlayersList && onGoToPlayersList(team.id)}
+            className="text-xl font-black italic flex items-center justify-between group cursor-pointer hover:text-pitch transition-colors"
+          >
+            <div className="flex items-center space-x-2">
+              <Users className="w-5 h-5 text-pitch animate-pulse" />
+              <span>Daftar Pemain</span>
+            </div>
+            <span className="text-[10px] font-black tracking-wide bg-slate-100 group-hover:bg-pitch/10 group-hover:text-pitch px-2.5 py-1.5 rounded-full border border-slate-200 group-hover:border-pitch/20 not-italic transition-all">
+              LIHAT SEMUA ↗
+            </span>
           </h3>
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
             {teamPlayers.length > 0 ? teamPlayers.map(player => {
@@ -116,9 +167,20 @@ export default function TeamDetailView({ team, matches, players, allTeams, onBac
               const secondaryPosition = player.secondaryPosition;
 
               return (
-                <div key={player.id} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                <div 
+                  key={player.id} 
+                  onClick={() => setSelectedPlayer(player)}
+                  className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer group"
+                >
                   <div className="flex flex-col text-left">
-                    <span className="font-bold text-slate-700">{player.name}</span>
+                    <div className="flex items-center space-x-2">
+                      <span className="font-bold text-slate-700 group-hover:text-pitch transition-colors">{player.name}</span>
+                      {player.jerseyNumber !== undefined && player.jerseyNumber !== null && (
+                        <span className="bg-rose-50 text-rose-700 border border-rose-200 text-[9px] px-1.5 py-0.5 rounded font-black">
+                          #{player.jerseyNumber}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex items-center space-x-2 mt-0.5">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{position}</span>
                       {secondaryPosition && (
@@ -154,8 +216,111 @@ export default function TeamDetailView({ team, matches, players, allTeams, onBac
               </div>
             )}
           </div>
+
+          {/* Team Officials Section (Located directly beneath list of players) */}
+          {officials.length > 0 && (
+            <div className="space-y-6 pt-4">
+              <h3 className="text-xl font-black italic flex items-center space-x-2">
+                <Globe className="w-5 h-5 text-pitch" />
+                <span>Official Tim</span>
+              </h3>
+              <div className="bg-white rounded-3xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
+                {officials.map(o => (
+                  <div key={o.id} className="p-4 flex items-center space-x-4 hover:bg-slate-50 transition-colors">
+                    <div className="w-12 h-12 bg-slate-50 border border-slate-200 rounded-full overflow-hidden flex items-center justify-center text-slate-400 shrink-0">
+                      {o.photoUrl ? (
+                        <img src={o.photoUrl} alt={o.name} className="w-full h-full object-cover animate-none" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center font-black text-slate-400 bg-slate-100 text-sm">
+                          {o.name.charAt(0)}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-bold text-slate-700 leading-tight">{o.name}</p>
+                      <p className="text-[10px] font-black text-pitch uppercase tracking-widest mt-0.5">{o.role}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* FUT Card Details Modal Popup */}
+      <AnimatePresence>
+        {selectedPlayer && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4 cursor-pointer"
+            onClick={() => setSelectedPlayer(null)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-slate-900 border border-slate-700/60 p-6 rounded-3xl relative text-center flex flex-col items-center justify-center max-w-sm w-full cursor-default shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Close Button */}
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <h3 className="text-yellow-400 text-xs font-black tracking-widest uppercase mb-4 flex items-center gap-1.5 justify-center">
+                <Sparkles className="w-4 h-4 text-amber-400" /> Detail Kartu FUT Pemain
+              </h3>
+
+              {/* FutCard itself */}
+              <div className="flex justify-center mb-6">
+                <FutCard 
+                  player={selectedPlayer} 
+                  team={allTeams.find(t => t.id === selectedPlayer.teamId) || team}
+                  globalShowCustom={true} // flip to show custom attributes
+                />
+              </div>
+
+              <div className="space-y-4 w-full">
+                <p className="text-sm font-extrabold text-white tracking-wide uppercase">
+                  {selectedPlayer.name}
+                </p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Klub: <span className="text-pitch">{(allTeams.find(t => t.id === selectedPlayer.teamId) || team).name}</span>
+                </p>
+                <div className="bg-slate-800/80 border border-slate-700/50 p-3.5 rounded-2xl text-[11px] font-bold text-slate-300 text-left space-y-1">
+                  <div className="flex justify-between border-b border-white/5 pb-1">
+                    <span>Posisi Utama:</span>
+                    <span className="text-yellow-400 uppercase font-extrabold">{selectedPlayer.position}</span>
+                  </div>
+                  {selectedPlayer.secondaryPosition && (
+                    <div className="flex justify-between border-b border-white/5 pb-1">
+                      <span>Posisi Tambahan:</span>
+                      <span className="text-amber-500 uppercase font-extrabold">{selectedPlayer.secondaryPosition}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Jumlah Gol:</span>
+                    <span className="text-green-400 font-extrabold">{selectedPlayer.goals || 0} GOL</span>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedPlayer(null)}
+                className="mt-6 w-full py-3 bg-slate-800 hover:bg-slate-755 hover:text-white active:bg-slate-950 text-slate-200 rounded-xl font-bold uppercase text-[11.5px] tracking-widest transition-all border border-slate-700"
+              >
+                Tutup Kartu
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

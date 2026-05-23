@@ -52,6 +52,23 @@ const INITIAL_NEWS: NewsArticle[] = [
   }
 ];
 
+const INITIAL_OFFICIALS: Official[] = [
+  // Ciamis FC (t1)
+  { id: 'o-t1-1', name: 'Asep Somantri, S.Pd.', role: 'Pelatih Kepala', teamId: 't1', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Asep' },
+  { id: 'o-t1-2', name: 'H. Tatang, M.Pd.', role: 'Manajer Skuad', teamId: 't1', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Tatang' },
+  { id: 'o-t1-3', name: 'dr. Dandi', role: 'Medis', teamId: 't1', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Dandi' },
+
+  // Kawali United (t2)
+  { id: 'o-t2-1', name: 'Kurnia Sandy, S.Pd.', role: 'Pelatih Kepala', teamId: 't2', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sandy' },
+  { id: 'o-t2-2', name: 'Yaya Sunarya', role: 'Asisten Pelatih', teamId: 't2', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Yaya' },
+
+  // Panumbangan Star (t3)
+  { id: 'o-t3-1', name: 'Suwandi HS', role: 'Pelatih Kepala', teamId: 't3', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Suwandi' },
+
+  // Sadananya FC (t4)
+  { id: 'o-t4-1', name: 'Eka Ramdani', role: 'Pelatih Kepala', teamId: 't4', photoUrl: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Eka' }
+];
+
 export class TournamentStore {
   private static instance: TournamentStore;
   private teams: Team[] = [];
@@ -94,7 +111,7 @@ export class TournamentStore {
         return p;
       });
 
-      this.officials = parsed.officials || [];
+      this.officials = parsed.officials && parsed.officials.length > 0 ? parsed.officials : INITIAL_OFFICIALS;
       this.news = parsed.news || INITIAL_NEWS;
       this.settings = parsed.settings || { ...DEFAULT_SETTINGS };
       this.seededIds = parsed.seededIds || ['t1', 't2', 't3', 't4'];
@@ -107,6 +124,7 @@ export class TournamentStore {
     } else {
       this.teams = INITIAL_TEAMS;
       this.players = this.getMockPlayers();
+      this.officials = INITIAL_OFFICIALS;
       this.news = INITIAL_NEWS;
       this.settings = { ...DEFAULT_SETTINGS };
       this.save();
@@ -269,6 +287,17 @@ export class TournamentStore {
     return official;
   }
 
+  async updateOfficial(updatedOfficial: Official) {
+    this.officials = this.officials.map(o => o.id === updatedOfficial.id ? updatedOfficial : o);
+    this.save();
+    return updatedOfficial;
+  }
+
+  async deleteOfficial(officialId: string) {
+    this.officials = this.officials.filter(o => o.id !== officialId);
+    this.save();
+  }
+
   async exportData() {
     return JSON.stringify({
       teams: this.teams,
@@ -280,19 +309,164 @@ export class TournamentStore {
   async importData(jsonString: string) {
     try {
       const data = JSON.parse(jsonString);
-      if (data.teams) {
+      
+      if (data.teams && Array.isArray(data.teams)) {
         data.teams.forEach((t: Team) => {
-          if (!this.teams.find(existing => existing.id === t.id)) {
+          const idx = this.teams.findIndex(existing => existing.id === t.id || existing.name.toLowerCase().trim() === t.name.toLowerCase().trim());
+          if (idx !== -1) {
+            this.teams[idx] = { ...this.teams[idx], ...t, id: this.teams[idx].id };
+          } else {
             this.teams.push(t);
           }
         });
       }
-      if (data.players) this.players = [...this.players, ...data.players];
-      if (data.officials) this.officials = [...this.officials, ...data.officials];
+
+      if (data.players && Array.isArray(data.players)) {
+        data.players.forEach((p: Player) => {
+          const idx = this.players.findIndex(existing => existing.id === p.id || (existing.name.toLowerCase().trim() === p.name.toLowerCase().trim() && existing.teamId === p.teamId));
+          if (idx !== -1) {
+            this.players[idx] = { ...this.players[idx], ...p, id: this.players[idx].id };
+          } else {
+            this.players.push(p);
+          }
+        });
+      }
+
+      if (data.officials && Array.isArray(data.officials)) {
+        data.officials.forEach((o: Official) => {
+          const idx = this.officials.findIndex(existing => existing.id === o.id || (existing.name.toLowerCase().trim() === o.name.toLowerCase().trim() && existing.teamId === o.teamId));
+          if (idx !== -1) {
+            this.officials[idx] = { ...this.officials[idx], ...o, id: this.officials[idx].id };
+          } else {
+            this.officials.push(o);
+          }
+        });
+      }
+
       this.save();
       return true;
     } catch (e) {
       console.error("Import failed", e);
+      return false;
+    }
+  }
+
+  async importExcel(teams: Team[], players: Player[], officials: Official[], seededIdsFromExcel?: string[]) {
+    try {
+      // Maps to track mapping from imported team id/name to actual stored team ID
+      const teamIdMap: Record<string, string> = {};
+
+      if (teams.length > 0) {
+        teams.forEach(t => {
+          // Find matching team in existing list by ID or Name
+          const idx = this.teams.findIndex(existing => 
+            existing.id === t.id || 
+            existing.name.toLowerCase().trim() === t.name.toLowerCase().trim()
+          );
+
+          if (idx !== -1) {
+            const existingTeam = this.teams[idx];
+            // Track mapping from imported ID to the existing persistent ID
+            teamIdMap[t.id] = existingTeam.id;
+            // Also map team name to existing ID
+            teamIdMap[t.name.toLowerCase().trim()] = existingTeam.id;
+
+            // Merge details but strictly PRESERVE existing team ID to prevent breaking other relations
+            this.teams[idx] = { 
+              ...existingTeam, 
+              ...t, 
+              id: existingTeam.id 
+            };
+          } else {
+            // Register as new team
+            const finalId = t.id || `t-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+            const newTeam = { ...t, id: finalId };
+            this.teams.push(newTeam);
+            
+            teamIdMap[t.id] = finalId;
+            teamIdMap[t.name.toLowerCase().trim()] = finalId;
+          }
+        });
+      }
+
+      // Also ensure existing teams are in teamIdMap to match player lookups by name/ID
+      this.teams.forEach(t => {
+        teamIdMap[t.id] = t.id;
+        teamIdMap[t.name.toLowerCase().trim()] = t.id;
+      });
+
+      if (players.length > 0) {
+        players.forEach(p => {
+          // Resolve correct teamId
+          let resolvedTeamId = p.teamId;
+          if (teamIdMap[p.teamId]) {
+            resolvedTeamId = teamIdMap[p.teamId];
+          } else if (teamIdMap[p.teamId.toLowerCase().trim()]) {
+            resolvedTeamId = teamIdMap[p.teamId.toLowerCase().trim()];
+          }
+
+          const processedPlayer = { ...p, teamId: resolvedTeamId };
+
+          // Find existing player by ID, or same name of same team
+          const idx = this.players.findIndex(existing => 
+            existing.id === processedPlayer.id || 
+            (existing.name.toLowerCase().trim() === processedPlayer.name.toLowerCase().trim() && existing.teamId === processedPlayer.teamId)
+          );
+
+          if (idx !== -1) {
+            // Keep existing ID so we don't duplicate or orphan
+            this.players[idx] = { 
+              ...this.players[idx], 
+              ...processedPlayer, 
+              id: this.players[idx].id 
+            };
+          } else {
+            this.players.push(processedPlayer);
+          }
+        });
+      }
+
+      if (officials.length > 0) {
+        officials.forEach(o => {
+          // Resolve correct teamId
+          let resolvedTeamId = o.teamId;
+          if (teamIdMap[o.teamId]) {
+            resolvedTeamId = teamIdMap[o.teamId];
+          } else if (teamIdMap[o.teamId.toLowerCase().trim()]) {
+            resolvedTeamId = teamIdMap[o.teamId.toLowerCase().trim()];
+          }
+
+          const processedOfficial = { ...o, teamId: resolvedTeamId };
+
+          // Find existing official by ID, or same name of same team
+          const idx = this.officials.findIndex(existing => 
+            existing.id === processedOfficial.id || 
+            (existing.name.toLowerCase().trim() === processedOfficial.name.toLowerCase().trim() && existing.teamId === processedOfficial.teamId)
+          );
+
+          if (idx !== -1) {
+            this.officials[idx] = { 
+              ...this.officials[idx], 
+              ...processedOfficial, 
+              id: this.officials[idx].id 
+            };
+          } else {
+            this.officials.push(processedOfficial);
+          }
+        });
+      }
+
+      if (seededIdsFromExcel && seededIdsFromExcel.length > 0) {
+        // Map any seeded team IDs to their resolved IDs
+        const resolvedSeeds = seededIdsFromExcel.map(id => teamIdMap[id] || id);
+        const uniqueSeeds = Array.from(new Set([...this.seededIds, ...resolvedSeeds]));
+        this.seededIds = uniqueSeeds;
+      }
+
+      this.save();
+      return true;
+    } catch (e) {
+      console.error("importExcel failed", e);
       return false;
     }
   }
@@ -346,7 +520,7 @@ export class TournamentStore {
     this.teams = INITIAL_TEAMS;
     this.matches = [];
     this.players = [];
-    this.officials = [];
+    this.officials = INITIAL_OFFICIALS;
     this.news = INITIAL_NEWS;
     this.settings = { ...DEFAULT_SETTINGS };
     this.save();
