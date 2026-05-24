@@ -81,7 +81,7 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
       onClick={onClick}
       className={cn(
         "relative rounded-2xl flex flex-col justify-between border-2 shadow-xl cursor-pointer overflow-hidden group select-none transition-all",
-        "w-[115px] h-[168px] p-1 min-[360px]:w-[125px] min-[360px]:h-[183px] min-[360px]:p-1.5 min-[375px]:w-[135px] min-[375px]:h-[197px] min-[410px]:w-[145px] min-[410px]:h-[212px] min-[410px]:p-2 sm:w-[175px] sm:h-[255px] sm:p-3 md:w-[160px] md:h-[234px] md:p-2.5 lg:w-[180px] lg:h-[263px] lg:p-3 xl:w-[208px] xl:h-[304px] xl:p-4",
+        "w-[130px] h-[195px] p-2 min-[360px]:w-[140px] min-[360px]:h-[210px] min-[375px]:w-[150px] min-[375px]:h-[225px] min-[410px]:w-[165px] min-[410px]:h-[247px] sm:w-[175px] sm:h-[255px] sm:p-3 md:w-[160px] md:h-[234px] md:p-2.5 lg:w-[180px] lg:h-[263px] lg:p-3 xl:w-[208px] xl:h-[304px] xl:p-4",
         cardBg
       )}
     >
@@ -1057,7 +1057,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
             </div>
 
             {/* Tactical Football Pitch Container */}
-            <div className="relative w-full aspect-[4/5] bg-gradient-to-br from-emerald-800 via-green-800 to-emerald-900 rounded-[2rem] border-[6px] border-slate-100 shadow-xl p-4 overflow-hidden select-none">
+            <div className="relative w-full aspect-[9/16] sm:aspect-[4/5] bg-gradient-to-br from-emerald-800 via-green-800 to-emerald-900 rounded-[2rem] border-[6px] border-slate-100 shadow-xl p-4 overflow-hidden select-none">
               
               {/* Pitch patterns (stripes) */}
               <div className="absolute inset-0 opacity-10 pointer-events-none flex flex-col h-full justify-between">
@@ -1108,25 +1108,25 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                   >
                     {/* Jersey Node */}
                     <div className={cn(
-                      "w-5 h-5 md:w-9 md:h-9 rounded-full flex flex-col items-center justify-center font-black relative border transition-all shadow-lg",
+                      "w-7 h-7 sm:w-9 sm:h-9 rounded-full flex flex-col items-center justify-center font-black relative border transition-all shadow-lg",
                       isSelected 
                         ? "bg-amber-400 text-slate-950 border-white scale-110 ring-4 ring-amber-400/40" 
                         : "bg-emerald-100 text-emerald-950 border-emerald-600 hover:bg-amber-400 hover:text-slate-950 group-hover:bg-amber-400 group-hover:text-slate-950 hover:border-white"
                     )}>
                       {/* Rating pill indicator */}
-                      <span className="absolute -top-1 -right-1 md:-top-1.5 md:-right-1.5 bg-slate-900 border border-slate-700 text-[4px] md:text-[6.5px] px-0.5 md:px-1 py-0 md:py-0.5 text-yellow-300 font-extrabold rounded-md shadow">
+                      <span className="absolute -top-1 -right-1 bg-slate-900 border border-slate-700 text-[5.5px] min-[360px]:text-[6px] sm:text-[6.5px] px-0.5 sm:px-1 py-0 text-yellow-300 font-extrabold rounded-md shadow">
                         {ovr}
                       </span>
                       {/* Jersey number inside player node on the field */}
-                      <span className="text-[6.5px] md:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name, p)}</span>
+                      <span className="text-[8.5px] min-[360px]:text-[9px] sm:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name, p)}</span>
                     </div>
 
                     {/* Name block */}
                     <div className={cn(
-                      "mt-0.5 md:mt-1 bg-slate-900/85 backdrop-blur-sm px-1 md:px-1.5 py-0 md:py-0.5 rounded-full text-[5px] md:text-[8.0px] font-black tracking-tight text-white max-w-[42px] md:max-w-[75px] truncate border border-white/5 transition-colors pointer-events-none shadow-md whitespace-nowrap",
+                      "mt-0.5 md:mt-1 bg-slate-900/85 backdrop-blur-sm px-1.5 py-0.5 md:py-0.5 border rounded-full text-[8px] min-[360px]:text-[9px] sm:text-[8px] md:text-[8.5px] lg:text-[9.5px] font-black tracking-tight text-white max-w-[55px] min-[360px]:max-w-[65px] sm:max-w-[75px] truncate border-white/5 transition-colors pointer-events-none shadow-md whitespace-nowrap",
                       isSelected ? "border-amber-400 text-amber-300" : "group-hover:border-amber-450"
                     )}>
-                      {p.name.split(' ')[0]} <span className="text-[4px] md:text-[6.5px] opacity-60">({p.position || 'ST'})</span>
+                      {p.name.split(' ')[0]} <span className="text-[6.5px] min-[360px]:text-[7px] sm:text-[6.5px] opacity-60">({p.position || 'ST'})</span>
                     </div>
                   </motion.div>
                 );
@@ -1151,25 +1151,25 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                   >
                     {/* Jersey Node (Away has blue/white distinction style) */}
                     <div className={cn(
-                      "w-5 h-5 md:w-9 md:h-9 rounded-full flex flex-col items-center justify-center font-black relative border transition-all shadow-lg",
+                      "w-7 h-7 sm:w-9 sm:h-9 rounded-full flex flex-col items-center justify-center font-black relative border transition-all shadow-lg",
                       isSelected 
                         ? "bg-amber-400 text-slate-950 border-white scale-110 ring-4 ring-amber-400/40" 
                         : "bg-blue-100 text-blue-950 border-blue-500 hover:bg-amber-400 hover:text-slate-950 group-hover:bg-amber-400 group-hover:text-slate-950 hover:border-white"
                     )}>
                       {/* Rating pill indicator */}
-                      <span className="absolute -top-1 -right-1 md:-top-1.5 md:-right-1.5 bg-slate-900 border border-slate-700 text-[4px] md:text-[6.5px] px-0.5 md:px-1 py-0 md:py-0.5 text-yellow-300 font-extrabold rounded-md shadow">
+                      <span className="absolute -top-1 -right-1 bg-slate-900 border border-slate-700 text-[5.5px] min-[360px]:text-[6px] sm:text-[6.5px] px-0.5 sm:px-1 py-0 text-yellow-300 font-extrabold rounded-md shadow">
                         {ovr}
                       </span>
                       {/* Jersey number inside player node on the field */}
-                      <span className="text-[6.5px] md:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name, p)}</span>
+                      <span className="text-[8.5px] min-[360px]:text-[9px] sm:text-[10px] leading-none font-black">{getPlayerJerseyNumber(item.role, p.name, p)}</span>
                     </div>
 
                     {/* Name block */}
                     <div className={cn(
-                      "mt-0.5 md:mt-1 bg-slate-900/85 backdrop-blur-sm px-1 md:px-1.5 py-0.5 rounded-full text-[5px] md:text-[8.0px] font-black tracking-tight text-white max-w-[42px] md:max-w-[75px] truncate border border-white/5 transition-colors pointer-events-none shadow-md whitespace-nowrap",
+                      "mt-0.5 md:mt-1 bg-slate-900/85 backdrop-blur-sm px-1.5 py-0.5 rounded-full text-[8px] min-[360px]:text-[9px] sm:text-[8px] md:text-[8.5px] lg:text-[9.5px] font-black tracking-tight text-white max-w-[55px] min-[360px]:max-w-[65px] sm:max-w-[75px] truncate border border-white/5 transition-colors pointer-events-none shadow-md whitespace-nowrap",
                       isSelected ? "border-amber-400 text-amber-300" : "group-hover:border-amber-450"
                     )}>
-                      {p.name.split(' ')[0]} <span className="text-[4px] md:text-[6.5px] opacity-60">({p.position || 'ST'})</span>
+                      {p.name.split(' ')[0]} <span className="text-[6.5px] min-[360px]:text-[7px] sm:text-[6.5px] opacity-60">({p.position || 'ST'})</span>
                     </div>
                   </motion.div>
                 );
