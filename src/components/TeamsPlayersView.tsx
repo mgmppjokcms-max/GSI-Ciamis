@@ -262,7 +262,7 @@ export default function TeamsPlayersView({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.2 }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center"
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 min-[375px]:gap-3 sm:gap-6 justify-items-center"
           >
             {filteredPlayers.length === 0 ? (
               <div className="col-span-full bg-white p-20 text-center rounded-3xl border border-slate-100 italic text-slate-400 font-bold">

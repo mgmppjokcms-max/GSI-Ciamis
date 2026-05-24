@@ -80,7 +80,8 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
       whileHover={{ y: -6, scale: 1.02 }}
       onClick={onClick}
       className={cn(
-        "relative w-52 h-76 rounded-2xl p-4 flex flex-col justify-between border-2 shadow-xl cursor-pointer overflow-hidden group select-none transition-all",
+        "relative rounded-2xl flex flex-col justify-between border-2 shadow-xl cursor-pointer overflow-hidden group select-none transition-all",
+        "w-[115px] h-[168px] p-1 min-[360px]:w-[125px] min-[360px]:h-[183px] min-[360px]:p-1.5 min-[375px]:w-[135px] min-[375px]:h-[197px] min-[410px]:w-[145px] min-[410px]:h-[212px] min-[410px]:p-2 sm:w-[175px] sm:h-[255px] sm:p-3 md:w-[160px] md:h-[234px] md:p-2.5 lg:w-[180px] lg:h-[263px] lg:p-3 xl:w-[208px] xl:h-[304px] xl:p-4",
         cardBg
       )}
     >
@@ -95,7 +96,7 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
             e.stopPropagation();
             setLocalShowCustom(!localShowCustom);
           }}
-          className="absolute top-2 right-2 z-30 bg-slate-900/90 hover:bg-slate-800 text-yellow-400 hover:text-white border border-yellow-400/50 px-1.5 py-0.5 rounded text-[8px] font-black tracking-wider uppercase transition-all shadow-md"
+          className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-30 bg-slate-900/95 hover:bg-slate-850 text-yellow-500 hover:text-white border border-yellow-400/50 px-1 py-0.5 sm:px-1.5 rounded-md text-[6px] min-[375px]:text-[7px] sm:text-[8px] font-bold tracking-wider uppercase transition-all shadow-md"
           title="Klik untuk flip ke Atribut Kustom"
         >
           {displayingCustom ? "📊 FIFA" : "✨ CATATAN"}
@@ -105,10 +106,10 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
       {/* Top Banner Stats */}
       <div className="flex justify-between items-start">
         <div className="flex flex-col items-center">
-          <span className="text-4xl font-black tracking-tight filter drop-shadow-sm">{overall}</span>
-          <span className="text-xs font-black tracking-widest uppercase mt-0.5 bg-black/5 px-1.5 py-0.5 rounded">{position}</span>
+          <span className="text-xl min-[375px]:text-2xl min-[410px]:text-3xl sm:text-[32px] md:text-3xl lg:text-[34px] xl:text-4xl font-black tracking-tight filter drop-shadow-sm leading-tight lg:leading-none">{overall}</span>
+          <span className="text-[7.5px] min-[375px]:text-[8.5px] min-[410px]:text-[9.5px] sm:text-[10px] md:text-[9.5px] lg:text-[11px] xl:text-xs font-black tracking-wider lg:tracking-widest uppercase mt-0.5 bg-black/5 px-1 lg:px-1.5 py-0.5 rounded">{position}</span>
           {player.jerseyNumber !== undefined && player.jerseyNumber !== null && (
-            <span className="text-[10px] font-black tracking-wider uppercase mt-1 bg-red-600 text-white px-2 py-0.5 rounded shadow-sm border border-red-500 leading-none">
+            <span className="text-[7.5px] min-[375px]:text-[8.5px] min-[410px]:text-[9.5px] sm:text-[10px] md:text-[9px] lg:text-[10px] font-black tracking-wider uppercase mt-1 bg-red-600 text-white px-1 lg:px-2 py-0.5 rounded shadow-sm border border-red-500 leading-none">
               #{player.jerseyNumber}
             </span>
           )}
@@ -119,7 +120,7 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
                 e.stopPropagation();
                 setShowSecondaryState(!showSecondaryState);
               }}
-              className="mt-1.5 px-2 py-0.5 rounded bg-slate-900 text-yellow-300 hover:bg-black text-[7px] font-black tracking-wider uppercase border border-amber-500/40 cursor-pointer"
+              className="mt-1 lg:mt-1.5 px-1 lg:px-2 py-0.5 rounded bg-slate-900 text-yellow-300 hover:bg-black text-[5.5px] min-[375px]:text-[6.5px] min-[410px]:text-[7px] sm:text-[7.5px] md:text-[6.5px] lg:text-[7px] xl:text-[8px] font-black tracking-wider uppercase border border-amber-500/40 cursor-pointer"
               title="Klik untuk melihat Posisi Utama atau Posisi Tambahan"
             >
               🔄 {isSecondaryActive ? 'Tambahan' : 'Utama'}
@@ -127,30 +128,20 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
           )}
           
           {/* USIA/AGE Badge replacing ID flag */}
-          <div className="mt-2 text-center" title="Usia Pemain">
-            <span className="text-[7.5px] font-black text-white bg-slate-900 px-1.5 py-0.5 rounded tracking-wider uppercase border border-slate-750/30 font-sans block min-w-[32px]">
+          <div className="mt-1 sm:mt-2 text-center" title="Usia Pemain">
+            <span className="text-[6px] min-[375px]:text-[6.5px] min-[410px]:text-[7.5px] sm:text-[9px] md:text-[7.5px] lg:text-[8px] xl:text-[9px] font-black text-white bg-slate-900 px-1 sm:px-1.5 py-0.5 rounded tracking-wider uppercase border border-slate-750/30 font-sans block min-w-[24px] min-[375px]:min-w-[32px]">
               {getAge(player.birthDate)} THN
-            </span>
-          </div>
-
-          {/* Logo and Full Team Name on Card Face */}
-          <div className="flex flex-row items-center justify-center mt-2.5 w-16 -mx-1 gap-1">
-            {team?.logoUrl ? (
-              <img src={team.logoUrl} alt={team.name} className="w-4 h-4 rounded-full object-cover border border-black/10 shrink-0" referrerPolicy="no-referrer" />
-            ) : null}
-            <span className="text-[7px] font-black leading-tight bg-black/10 px-1 py-0.5 rounded uppercase text-center max-w-[48px] truncate" title={team?.name || 'GSI'}>
-              {team?.name || 'GSI'}
             </span>
           </div>
         </div>
 
         {/* Player Silhouette Drawing / Photo */}
-        <div className="relative w-24 h-24 flex items-end justify-center overflow-hidden">
+        <div className="relative w-14 h-14 min-[375px]:w-18 min-[375px]:h-18 min-[410px]:w-20 min-[410px]:h-20 sm:w-[84px] sm:h-[84px] md:w-20 md:h-20 lg:w-[90px] lg:h-[90px] xl:w-24 xl:h-24 flex items-end justify-center overflow-hidden">
           <div className="absolute inset-0 rounded-full bg-black/5 flex items-center justify-center">
             {player.photoUrl ? null : team?.logoUrl ? (
-              <img src={team.logoUrl} alt="avatar" className="w-14 h-14 rounded-full object-cover opacity-15 filter grayscale" referrerPolicy="no-referrer" />
+              <img src={team.logoUrl} alt="avatar" className="w-8 h-8 min-[375px]:w-10 min-[375px]:h-10 min-[410px]:w-12 min-[410px]:h-12 sm:w-[48px] sm:h-[48px] md:w-11 md:h-11 lg:w-[50px] lg:h-[50px] xl:w-14 xl:h-14 rounded-full object-cover opacity-15 filter grayscale" referrerPolicy="no-referrer" />
             ) : (
-              <User className="w-12 h-12 text-black/10" />
+              <User className="w-6 h-6 min-[375px]:w-8 min-[375px]:h-8 min-[410px]:w-10 min-[410px]:h-10 sm:w-10 sm:h-10 md:w-8 md:h-8 lg:w-10 lg:h-10 xl:w-12 xl:h-12 text-black/10" />
             )}
           </div>
           {player.photoUrl ? (
@@ -165,7 +156,7 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
               }}
             />
           ) : (
-            <div className="z-10 font-bold text-4xl text-white/20 uppercase tracking-tighter">
+            <div className="z-10 font-bold text-lg min-[375px]:text-xl min-[410px]:text-2xl sm:text-3xl md:text-2xl lg:text-3xl xl:text-4xl text-white/20 uppercase tracking-tighter">
               {player.name.substring(0, 2).toUpperCase()}
             </div>
           )}
@@ -173,70 +164,80 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
       </div>
 
       {/* Name banner */}
-      <div className="text-center font-black uppercase text-sm border-t border-b border-black/10 py-1 tracking-tight truncate">
+      <div className="text-center font-black uppercase text-[10px] min-[375px]:text-[11px] min-[410px]:text-xs sm:text-[13px] md:text-[11px] lg:text-xs xl:text-sm border-t border-b border-black/10 py-0.5 lg:py-1 tracking-tight truncate shrink-0">
         {player.name}
+      </div>
+
+      {/* Team Logo & Centered Full Name Row */}
+      <div className="flex flex-row items-center justify-center gap-0.5 sm:gap-1 py-0.5 mt-0.5 lg:mt-1 shrink-0">
+        {team?.logoUrl ? (
+          <img src={team.logoUrl} alt={team.name} className="w-3 h-3 sm:w-3.5 md:w-3 md:h-3 lg:w-3.5 lg:h-3.5 xl:w-4 xl:h-4 rounded-full object-cover border border-black/15 shrink-0 shadow-sm" referrerPolicy="no-referrer" />
+        ) : null}
+        <span className="text-[6.5px] min-[375px]:text-[7px] min-[410px]:text-[8px] sm:text-[8.5px] md:text-[7.5px] lg:text-[8.5px] xl:text-[9.5px] font-black uppercase tracking-wider text-slate-800 bg-black/10 px-1 sm:px-1.5 py-0.5 rounded truncate max-w-[80px] sm:max-w-[110px] md:max-w-[95px] lg:max-w-[120px] xl:max-w-none" title={team?.name || 'GSI'}>
+          {team?.name || 'GSI'}
+        </span>
       </div>
 
       {/* Attributes breakdown / Custom list */}
       {displayingCustom && player.customAttributes ? (
-        <div className="bg-black/10 border border-black/5 rounded-xl p-2 h-[4.5rem] flex flex-col justify-start space-y-1 overflow-y-auto scrollbar-none text-[9px] text-left">
+        <div className="bg-black/10 border border-black/5 rounded-xl p-1 lg:p-2 h-[2.5rem] min-[375px]:h-[3rem] min-[410px]:h-[3.3rem] sm:h-[4rem] md:h-[3.5rem] lg:h-[4.2rem] xl:h-[4.8rem] flex flex-col justify-start space-y-0.5 lg:space-y-1 overflow-y-auto scrollbar-none text-[8px] lg:text-[9px] text-left">
           {player.customAttributes.map((attr, idx) => (
             <div key={idx} className="flex items-center space-x-1 border-b border-black/5 pb-0.5 font-bold text-slate-800">
               <span className="text-amber-600 font-extrabold">•</span>
-              <span className="truncate w-full text-left uppercase text-[8.5px] tracking-tight">{attr.name}</span>
+              <span className="truncate w-full text-left uppercase text-[7px] sm:text-[8px] md:text-[7px] lg:text-[7.5px] xl:text-[8.5px] tracking-tight">{attr.name}</span>
             </div>
           ))}
         </div>
       ) : isGK ? (
-        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-bold px-1 text-left">
-          <div className="flex justify-between border-r border-black/10 pr-2" title="Diving">
+        <div className="grid grid-cols-2 gap-x-1 sm:gap-x-1.5 md:gap-x-1 lg:gap-x-1.5 xl:gap-x-2 gap-y-0.5 text-[8px] min-[375px]:text-[8.5px] min-[410px]:text-[9px] sm:text-[9.5px] md:text-[8.5px] lg:text-[9px] xl:text-[10px] font-bold px-1 text-left">
+          <div className="flex justify-between border-r border-black/10 pr-1 sm:pr-1.5 md:pr-1 lg:pr-1.5 xl:pr-2" title="Diving">
             <span className={textMuted}>DIV</span>
             <span className="font-extrabold">{rating.pac}</span>
           </div>
-          <div className="flex justify-between pl-2" title="Reflexes">
+          <div className="flex justify-between pl-1 sm:pl-1.5 md:pl-1 lg:pl-1.5 xl:pl-2" title="Reflexes">
             <span className={textMuted}>REF</span>
             <span className="font-extrabold">{rating.dri}</span>
           </div>
-          <div className="flex justify-between border-r border-black/10 pr-2" title="Handling">
+          <div className="flex justify-between border-r border-black/10 pr-1 sm:pr-1.5 md:pr-1 lg:pr-1.5 xl:pr-2" title="Handling">
             <span className={textMuted}>HAN</span>
             <span className="font-extrabold">{rating.sho}</span>
           </div>
-          <div className="flex justify-between pl-2" title="Physical">
+          <div className="flex justify-between pl-1 sm:pl-1.5 md:pl-1 lg:pl-1.5 xl:pl-2" title="Physical">
             <span className={textMuted}>PHY</span>
             <span className="font-extrabold">{rating.def}</span>
           </div>
-          <div className="flex justify-between border-r border-black/10 pr-2" title="Kicking">
-            <span className={textMuted}>KIC</span>
+          <div className="flex justify-between border-r border-black/10 pr-1 sm:pr-1.5 md:pr-1 lg:pr-1.5 xl:pr-2" title="Distribusi">
+            <span className={textMuted}>DIS</span>
             <span className="font-extrabold">{rating.pas}</span>
           </div>
-          <div className="flex justify-between pl-2" title="Positioning">
+          <div className="flex justify-between pl-1 sm:pl-1.5 md:pl-1 lg:pl-1.5 xl:pr-2" title="Positioning">
             <span className={textMuted}>POS</span>
             <span className="font-extrabold">{rating.phy}</span>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[10px] font-bold px-1 text-left">
-          <div className="flex justify-between border-r border-black/10 pr-2">
+        <div className="grid grid-cols-2 gap-x-1 sm:gap-x-1.5 md:gap-x-1 lg:gap-x-1.5 xl:gap-x-2 gap-y-0.5 text-[8px] min-[375px]:text-[8.5px] min-[410px]:text-[9px] sm:text-[9.5px] md:text-[8.5px] lg:text-[9px] xl:text-[10px] font-bold px-1 text-left">
+          <div className="flex justify-between border-r border-black/10 pr-1 sm:pr-1.5 md:pr-1 lg:pr-1.5 xl:pr-2">
             <span className={textMuted}>SPD</span>
             <span className="font-extrabold">{rating.pac}</span>
           </div>
-          <div className="flex justify-between pl-2">
+          <div className="flex justify-between pl-1 sm:pl-1.5 md:pl-1 lg:pl-1.5 xl:pl-2">
             <span className={textMuted}>DRI</span>
             <span className="font-extrabold">{rating.dri}</span>
           </div>
-          <div className="flex justify-between border-r border-black/10 pr-2">
+          <div className="flex justify-between border-r border-black/10 pr-1 sm:pr-1.5 md:pr-1 lg:pr-1.5 xl:pr-2">
             <span className={textMuted}>SHO</span>
             <span className="font-extrabold">{rating.sho}</span>
           </div>
-          <div className="flex justify-between pl-2">
+          <div className="flex justify-between pl-1 sm:pl-1.5 md:pl-1 lg:pl-1.5 xl:pl-2">
             <span className={textMuted}>DEF</span>
             <span className="font-extrabold">{rating.def}</span>
           </div>
-          <div className="flex justify-between border-r border-black/10 pr-2">
+          <div className="flex justify-between border-r border-black/10 pr-1 sm:pr-1.5 md:pr-1 lg:pr-1.5 xl:pr-2">
             <span className={textMuted}>PAS</span>
             <span className="font-extrabold">{rating.pas}</span>
           </div>
-          <div className="flex justify-between pl-2">
+          <div className="flex justify-between pl-1 sm:pl-1.5 md:pl-1 lg:pl-1.5 xl:pl-2">
             <span className={textMuted}>PHY</span>
             <span className="font-extrabold">{rating.phy}</span>
           </div>
@@ -244,9 +245,9 @@ export function FutCard({ player, team, onClick, globalShowCustom = false }: { p
       )}
 
       {/* Card Footer branding */}
-      <div className="flex justify-between items-center text-[7px] font-black tracking-widest text-black/40 pt-1 border-t border-black/5">
-        <span>GSI TALENT SCOUT</span>
-        <span className={cn("px-1 rounded-sm text-[6px] text-white font-black", badgeColor)}>
+      <div className="flex justify-between items-center text-[5.5px] min-[375px]:text-[6px] min-[410px]:text-[6.5px] sm:text-[7px] md:text-[6px] lg:text-[6.5px] xl:text-[7px] font-black tracking-widest text-black/40 pt-1 border-t border-black/5 shrink-0">
+        <span>GSI SCOUT</span>
+        <span className={cn("px-1 rounded-sm text-[5px] lg:text-[6px] text-white font-black leading-none py-0.5", badgeColor)}>
           {tierLabel}
         </span>
       </div>
@@ -812,19 +813,68 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
   const homePlayers = players.filter(p => p.teamId === homeTeamId);
   const awayPlayers = players.filter(p => p.teamId === awayTeamId);
 
+  // Position ordering map to sort players starting from GK up to ST
+  const POSITION_ORDER: Record<string, number> = {
+    'GK': 1,
+    'RB': 2,
+    'LB': 3,
+    'CB': 4,
+    'RWB': 5,
+    'LWB': 6,
+    'CDM': 7,
+    'DM': 8,
+    'CM': 9,
+    'RM': 10,
+    'LM': 11,
+    'CAM': 12,
+    'AM': 13,
+    'RW': 14,
+    'LW': 15,
+    'CF': 16,
+    'ST': 17
+  };
+
+  const getPositionOrderValue = (pos: string | undefined): number => {
+    if (!pos) return 99;
+    const pUpper = pos.toUpperCase();
+    return POSITION_ORDER[pUpper] !== undefined ? POSITION_ORDER[pUpper] : 99;
+  };
+
+  const sortedHomePlayers = [...homePlayers].sort((a, b) => {
+    const valA = getPositionOrderValue(a.position);
+    const valB = getPositionOrderValue(b.position);
+    if (valA !== valB) return valA - valB;
+    // fallback to jersey number
+    const numA = a.jerseyNumber ?? 999;
+    const numB = b.jerseyNumber ?? 999;
+    if (numA !== numB) return numA - numB;
+    return a.name.localeCompare(b.name);
+  });
+
+  const sortedAwayPlayers = [...awayPlayers].sort((a, b) => {
+    const valA = getPositionOrderValue(a.position);
+    const valB = getPositionOrderValue(b.position);
+    if (valA !== valB) return valA - valB;
+    // fallback to jersey number
+    const numA = a.jerseyNumber ?? 999;
+    const numB = b.jerseyNumber ?? 999;
+    if (numA !== numB) return numA - numB;
+    return a.name.localeCompare(b.name);
+  });
+
   const fullHomePlayers = getTeamMockPlayersForSlots(homeTeamId || 't1', homeTeam?.name || 'Kandang', homePlayers);
   const fullAwayPlayers = getTeamMockPlayersForSlots(awayTeamId || 't2', awayTeam?.name || 'Tandang', awayPlayers);
 
   // Helper to scale coordinates strictly to their respective halves:
-  // Home team players (isAway=false) should stay in [53, 93]%
-  // Away team players (isAway=true) should stay in [7, 47]%
+  // Home team players (isAway=false) should stay in [7, 47]% (top half)
+  // Away team players (isAway=true) should stay in [53, 93]% (bottom half)
   const scalePlayerY = (yVal: number, isAway: boolean) => {
     const minOriginal = 45;
     const maxOriginal = 90;
     const normalized = (yVal - minOriginal) / (maxOriginal - minOriginal);
     const clamped = Math.max(0, Math.min(1, normalized));
 
-    if (isAway) {
+    if (!isAway) {
       return 47 - clamped * (47 - 7);
     } else {
       return 53 + clamped * (93 - 53);
@@ -879,498 +929,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
         </p>
       </div>
 
-      {/* Top statistics overview row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column: Top Scout Stars */}
-        <div className="lg:col-span-1 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-          <div className="space-y-4">
-            <h3 className="font-black text-slate-800 text-sm flex items-center space-x-2 uppercase tracking-wide border-b border-slate-100 pb-3">
-              <Award className="w-5 h-5 text-amber-500" />
-              <span>Pemain Kategori Gold (OVR 80+)</span>
-            </h3>
-            
-            <div className="space-y-3">
-              {topElitePlayers.map((p, idx) => {
-                const ovr = getOverall(p);
-                const t = teams.find(team => team.id === p.teamId);
-                const details = getRatingDetails(ovr);
-                return (
-                  <div 
-                    key={p.id} 
-                    onClick={() => handleOpenEvaluation(p)}
-                    className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-amber-300 hover:bg-amber-50/20 cursor-pointer transition-all"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xs font-black text-slate-400">#0{idx+1}</span>
-                      <div>
-                        <p className="font-black text-sm text-slate-800">{p.name}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{t?.name}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{p.position || 'ST'}</span>
-                      <span className={cn("px-2.5 py-1 rounded-lg text-xs font-black", details.badgeColor)}>
-                        {ovr} OVR
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-              {topElitePlayers.length === 0 && (
-                <div className="text-center text-slate-400 text-xs py-8">Belum ada penilaian pemain.</div>
-              )}
-            </div>
-          </div>
-          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-bold italic">
-            <span>* Nilai minimal 80 untuk predikat Gold</span>
-            <Activity className="w-4 h-4 text-slate-300" />
-          </div>
-        </div>
-
-        {/* Right Columns: Active Scout Card Rating Panel or Tutorial */}
-        <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800">
-          {/* Subtle field markings on background */}
-          <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:24px_24px]" />
-          
-          {selectedPlayer ? (
-            <>
-              {/* Card visualizer */}
-              <div className="flex flex-col items-center justify-center space-y-3 z-10">
-                <FutCard 
-                  player={{
-                    ...selectedPlayer, 
-                    position, // use live form state
-                    rating: ratings, // use live form state
-                    customAttributes: customAttrs, // use live form state
-                    secondaryPosition: enableSecondary ? secondaryPosition : undefined,
-                    secondaryRating: enableSecondary ? secondaryRatings : undefined,
-                  }} 
-                  team={teams.find(t => t.id === selectedPlayer.teamId)} 
-                  globalShowCustom={showCustomAttrs}
-                />
-                <p className="text-[10px] font-black tracking-widest text-amber-500 uppercase flex items-center">
-                  <Flame className="w-3 h-3 mr-1" /> LIVE CARDS VIEW
-                </p>
-              </div>
-
-              {/* Input forms editor */}
-              <div className="flex-1 space-y-5 z-10 w-full md:max-w-md">
-                <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-                  <div>
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Scout Form</span>
-                    <h4 className="text-lg font-black text-white">{selectedPlayer.name}</h4>
-                  </div>
-                  <button 
-                    onClick={() => setSelectedPlayer(null)}
-                    className="p-1 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors text-xs font-black"
-                  >
-                    X BATAL
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1 col-span-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-sans">POSISI UTAMA</label>
-                    <select 
-                      value={position}
-                      onChange={(e) => setPosition(e.target.value)}
-                      className="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-sm font-black text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all font-sans"
-                    >
-                      {positionsOptions.map(p => <option key={p} value={p}>{p}</option>)}
-                    </select>
-                  </div>
-
-                  {/* Posisi Tambahan Selector Header & Checkbox */}
-                  <div className="col-span-2 bg-slate-950/60 border border-slate-800 p-4 rounded-2xl space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <input
-                          id="enable-secondary-checkbox"
-                          type="checkbox"
-                          checked={enableSecondary}
-                          onChange={(e) => setEnableSecondary(e.target.checked)}
-                          className="w-4 h-4 text-amber-500 focus:ring-amber-500 rounded accent-amber-500 cursor-pointer"
-                        />
-                        <label htmlFor="enable-secondary-checkbox" className="text-xs font-black text-amber-400 uppercase tracking-widest cursor-pointer select-none">
-                          Posisi / Peran Tambahan
-                        </label>
-                      </div>
-                      <span className="text-[8px] font-extrabold bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded tracking-wider border border-amber-500/10">SECONDARY</span>
-                    </div>
-
-                    {enableSecondary && (
-                      <div className="space-y-4 pt-1 border-t border-slate-800/60">
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-sans">PILIH POSISI TAMBAHAN</label>
-                          <select 
-                            value={secondaryPosition}
-                            onChange={(e) => setSecondaryPosition(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs font-black text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all font-sans"
-                          >
-                            {positionsOptions.filter(p => p !== position).map(p => <option key={p} value={p}>{p}</option>)}
-                          </select>
-                        </div>
-
-                        {/* Sliders for secondary position attributes */}
-                        <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 bg-slate-900/40 p-3 rounded-xl border border-slate-800/40">
-                          {/* Secondary Slider 1 */}
-                          <div className="space-y-1 font-sans">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'DIV' : 'SPD (LARI)'}</span>
-                              <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.pac}</span>
-                            </label>
-                            <input 
-                              type="range" min="1" max="99" 
-                              value={secondaryRatings.pac}
-                              onChange={(e) => setSecondaryRatings({...secondaryRatings, pac: parseInt(e.target.value)})}
-                              className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
-                            />
-                          </div>
-
-                          {/* Secondary Slider 2 */}
-                          <div className="space-y-1 font-sans">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'HAN' : 'SHO (TENDANG)'}</span>
-                              <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.sho}</span>
-                            </label>
-                            <input 
-                              type="range" min="1" max="99" 
-                              value={secondaryRatings.sho}
-                              onChange={(e) => setSecondaryRatings({...secondaryRatings, sho: parseInt(e.target.value)})}
-                              className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
-                            />
-                          </div>
-
-                          {/* Secondary Slider 3 */}
-                          <div className="space-y-1 font-sans">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'KIC' : 'PAS (UMPAN)'}</span>
-                              <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.pas}</span>
-                            </label>
-                            <input 
-                              type="range" min="1" max="99" 
-                              value={secondaryRatings.pas}
-                              onChange={(e) => setSecondaryRatings({...secondaryRatings, pas: parseInt(e.target.value)})}
-                              className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
-                            />
-                          </div>
-
-                          {/* Secondary Slider 4 */}
-                          <div className="space-y-1 font-sans">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'REF' : 'DRI (GIRING)'}</span>
-                              <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.dri}</span>
-                            </label>
-                            <input 
-                              type="range" min="1" max="99" 
-                              value={secondaryRatings.dri}
-                              onChange={(e) => setSecondaryRatings({...secondaryRatings, dri: parseInt(e.target.value)})}
-                              className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
-                            />
-                          </div>
-
-                          {/* Secondary Slider 5 */}
-                          <div className="space-y-1 font-sans">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'PHY' : 'DEF (BERTAHAN)'}</span>
-                              <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.def}</span>
-                            </label>
-                            <input 
-                              type="range" min="1" max="99" 
-                              value={secondaryRatings.def}
-                              onChange={(e) => setSecondaryRatings({...secondaryRatings, def: parseInt(e.target.value)})}
-                              className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
-                            />
-                          </div>
-
-                          {/* Secondary Slider 6 */}
-                          <div className="space-y-1 font-sans">
-                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
-                              <span>{secondaryPosition === 'GK' ? 'POS' : 'PHY (FISIK)'}</span>
-                              <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.phy}</span>
-                            </label>
-                            <input 
-                              type="range" min="1" max="99" 
-                              value={secondaryRatings.phy}
-                              onChange={(e) => setSecondaryRatings({...secondaryRatings, phy: parseInt(e.target.value)})}
-                              className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Slider 1 */}
-                  <div className="space-y-1 font-sans">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'DIV (DIVING)' : 'SPD (LARI)'}</span>
-                      <span className="text-amber-400 font-black font-mono">{ratings.pac}</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="99" 
-                      value={ratings.pac}
-                      onChange={(e) => setRatings({...ratings, pac: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
-                  {/* Slider 2 */}
-                  <div className="space-y-1 font-sans">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'HAN (TANGKAP)' : 'SHO (TENDANG)'}</span>
-                      <span className="text-amber-400 font-black font-mono">{ratings.sho}</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="99" 
-                      value={ratings.sho}
-                      onChange={(e) => setRatings({...ratings, sho: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
-                  {/* Slider 3 */}
-                  <div className="space-y-1 font-sans">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'KIC (TENDANG)' : 'PAS (UMPAN)'}</span>
-                      <span className="text-amber-400 font-black font-mono">{ratings.pas}</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="99" 
-                      value={ratings.pas}
-                      onChange={(e) => setRatings({...ratings, pas: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
-                  {/* Slider 4 */}
-                  <div className="space-y-1 font-sans">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'REF (REFLEKS)' : 'DRI (GIRING)'}</span>
-                      <span className="text-amber-400 font-black font-mono">{ratings.dri}</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="99" 
-                      value={ratings.dri}
-                      onChange={(e) => setRatings({...ratings, dri: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
-                  {/* Slider 5 */}
-                  <div className="space-y-1 font-sans">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'PHY (FISIK)' : 'DEF (BERTAHAN)'}</span>
-                      <span className="text-amber-400 font-black font-mono">{ratings.def}</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="99" 
-                      value={ratings.def}
-                      onChange={(e) => setRatings({...ratings, def: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-
-                  {/* Slider 6 */}
-                  <div className="space-y-1 font-sans">
-                    <label className="text-[10px] font-black text-slate-450 uppercase tracking-widest flex justify-between">
-                      <span>{position === 'GK' ? 'POS (POSISI)' : 'PHY (FISIK)'}</span>
-                      <span className="text-amber-400 font-black font-mono">{ratings.phy}</span>
-                    </label>
-                    <input 
-                      type="range" min="1" max="99" 
-                      value={ratings.phy}
-                      onChange={(e) => setRatings({...ratings, phy: parseInt(e.target.value)})}
-                      className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Shortlist Checkbox */}
-                <div className="bg-slate-900 border border-amber-500/25 p-4 rounded-2xl flex items-start space-x-3 text-left font-sans transition-all hover:bg-slate-850">
-                  <input
-                    id="shortlist-scout"
-                    type="checkbox"
-                    checked={markedForScoutTeam}
-                    onChange={(e) => setMarkedForScoutTeam(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded text-amber-500 focus:ring-amber-500 outline-none cursor-pointer accent-amber-500"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="shortlist-scout" className="text-xs font-black text-amber-400 uppercase tracking-wider cursor-pointer select-none">
-                      Masuk Tim Hasil Pemantauan
-                    </label>
-                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5 leading-relaxed">
-                      Tandai ini agar otomatis masuk ke Tim hasil pemantauan pemandu bakat Scout Talent.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Seksi Atribut Tambahan Kustom */}
-                <div className="border-t border-slate-800 pt-4 space-y-3 font-sans">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black uppercase text-amber-500 tracking-widest flex items-center">
-                      <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-400 animate-pulse" /> Atribut Tambahan Kustom
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowCustomAttrs(!showCustomAttrs)}
-                      className={cn(
-                        "text-[9px] font-extrabold px-2 py-1 rounded transition-all border",
-                        showCustomAttrs 
-                          ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-slate-800" 
-                          : "bg-slate-900 border-slate-800 text-slate-500 hover:text-white"
-                      )}
-                    >
-                      {showCustomAttrs ? '👁️ Tampilkan di Kartu' : '👁️ Sembunyikan Baru'}
-                    </button>
-                  </div>
-
-                  {/* List atribut tambahan yang siap disimpan */}
-                  <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
-                    {customAttrs.map((attr, idx) => (
-                      <div key={idx} className="flex items-center justify-between bg-slate-900/80 border border-slate-850 rounded-lg px-2.5 py-1.5 text-xs font-sans">
-                        <div className="flex items-center space-x-2 truncate">
-                          <span className="text-amber-500 font-black">•</span>
-                          <span className="font-semibold text-slate-350 truncate">{attr.name}</span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setCustomAttrs(customAttrs.filter((_, i) => i !== idx));
-                          }}
-                          className="text-red-400 hover:text-red-300 font-bold text-[9px] hover:underline shrink-0"
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                    ))}
-                    {customAttrs.length === 0 && (
-                      <p className="text-[11px] text-slate-500 italic pl-1 pb-1">Belum ada atribut kustom. Tulis & tambahkan di bawah.</p>
-                    )}
-                  </div>
-
-                  {/* Form manual input tambahan (Text Note Input only without rating input) */}
-                  <div className="flex gap-2">
-                    <input
-                      placeholder="Tulis Catatan Kustom Scout (e.g. Tendangan bebas melengkung tajam)"
-                      value={newAttrName}
-                      onChange={(e) => setNewAttrName(e.target.value)}
-                      className="flex-1 bg-slate-900 border border-slate-800 p-2 rounded-lg text-xs font-bold text-white outline-none focus:border-amber-500 font-sans"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (newAttrName.trim()) {
-                          setCustomAttrs([...customAttrs, { name: newAttrName.trim(), value: '-' }]);
-                          setNewAttrName('');
-                        }
-                      }}
-                      className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 font-black rounded-lg text-xs flex items-center justify-center transition-colors shrink-0 font-sans"
-                      title="Tambah Catatan"
-                    >
-                      TAMBAH
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button 
-                    onClick={() => setRatings({ pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 })}
-                    className="flex-1 bg-slate-850 hover:bg-slate-800 border border-slate-700 py-3 text-xs font-black uppercase text-slate-300 rounded-xl active:scale-95 transition-all text-center font-sans"
-                  >
-                    Reset Nilai
-                  </button>
-                  <button 
-                    onClick={handleSaveRatings}
-                    disabled={isSaving}
-                    className="flex-[2] flex items-center justify-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-450 hover:to-amber-550 text-slate-950 py-3 text-xs font-black uppercase rounded-xl shadow-lg active:scale-95 transition-all font-sans"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>{isSaving ? 'Menyimpan...' : 'Simpan Rating'}</span>
-                  </button>
-                </div>
-              </div>
-            </>
-          ) : isAddingNew ? (
-            <div className="space-y-6 z-10 w-full max-w-xl mx-auto">
-              <div className="flex justify-between items-center border-b border-slate-850 pb-3">
-                <div>
-                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Prospek GSI Ciamis</span>
-                  <h4 className="text-lg font-black text-white">TAMBAH PEMAIN BARU</h4>
-                </div>
-                <button 
-                  onClick={() => setIsAddingNew(false)}
-                  className="p-1 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors text-xs font-black"
-                >
-                  BATAL
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 block">NAMA PEMAIN</label>
-                  <input 
-                    placeholder="Contoh: Pratama Arhan Jr"
-                    className="w-full p-3 rounded-xl bg-slate-850 border border-slate-755 text-sm font-bold text-white outline-none focus:ring-1 focus:ring-amber-500"
-                    value={newPlayerName}
-                    onChange={(e) => setNewPlayerName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 block">TIM ASOSIASI / SEKOLAH</label>
-                  <select 
-                    className="w-full p-3 rounded-xl bg-slate-850 border border-slate-755 text-sm font-bold text-white outline-none focus:ring-1 focus:ring-amber-500"
-                    value={newPlayerTeamId}
-                    onChange={(e) => setNewPlayerTeamId(e.target.value)}
-                  >
-                    <option value="">Pilih Tim</option>
-                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button 
-                  onClick={handleAddNewPlayer}
-                  disabled={!newPlayerName || !newPlayerTeamId}
-                  className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 px-8 py-3.5 text-xs font-black uppercase rounded-xl transition-all"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span>Tambahkan Pemain & Atur Rating</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Default Welcome Information */}
-              <div className="space-y-5 z-10 max-w-md">
-                <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl font-bold flex items-center space-x-2 text-amber-300 text-xs">
-                  <Sliders className="w-5 h-5 text-amber-500" />
-                  <span>Instruksi Penilaian Scout Kompetisi</span>
-                </div>
-                <h3 className="text-2xl font-black italic text-white uppercase tracking-tight">SILAKAN PILIH PEMAIN UNTUK DINILAI</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Pilih salah satu kartu pemain yang terdaftar di bawah untuk melakukan modifikasi rating performa taktis (FUT Rating Badge) atau tambah prospek baru.
-                </p>
-                <div className="flex space-x-3">
-                  <button 
-                    onClick={() => setIsAddingNew(true)}
-                    className="flex items-center space-x-2 bg-white/10 hover:bg-white/15 px-5 py-3 rounded-xl text-xs font-black tracking-wider uppercase transition-all"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    <span>Tambah Pemain Scout</span>
-                  </button>
-                </div>
-              </div>
-              <div className="hidden md:flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-800 rounded-3xl w-52 h-72 space-y-3 shadow-lg opacity-40">
-                <User className="w-12 h-12 text-slate-500" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">SILHOUETTE FIFA FUT</p>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-          {/* SEKSI TAKTIKAL & LAPANGAN FORMASI */}
+      {/* SEKSI TAKTIKAL & LAPANGAN FORMASI */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm space-y-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border-b border-slate-100 pb-6">
           <div>
@@ -1418,6 +977,22 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                   </select>
                 </div>
 
+                {/* Formasi Kandang (Only visible on mobile/HP, below Tim Kandang and above VS on mobile) */}
+                <div className="flex flex-col w-full sm:hidden">
+                  <label className="text-[9px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Formasi Kandang (HP)</label>
+                  <select
+                    value={homeFormation}
+                    onChange={(e) => setHomeFormation(e.target.value)}
+                    className="px-4 py-2.5 text-xs font-black bg-emerald-50 border border-emerald-200 rounded-xl cursor-pointer outline-none focus:ring-1 focus:ring-emerald-500 transition-all text-emerald-950"
+                  >
+                    <option value="4-4-2">4-4-2 Standard</option>
+                    <option value="4-3-3">4-3-3 Offensive</option>
+                    <option value="3-5-2">3-5-2 Balanced</option>
+                    <option value="3-4-3">3-4-3 Dynamic</option>
+                    <option value="4-2-3-1">4-2-3-1 Modern</option>
+                  </select>
+                </div>
+
                 <div className="text-slate-400 font-extrabold text-xs self-end pb-3 flex justify-center w-full sm:w-auto">VS</div>
 
                 <div className="flex flex-col w-full sm:w-40">
@@ -1437,7 +1012,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
 
             {/* Formasi Team Selectors */}
             <div className="flex flex-wrap sm:flex-nowrap gap-3 items-center w-full sm:w-auto">
-              <div className="flex flex-col w-full sm:w-36">
+              <div className={`flex flex-col w-full sm:w-36 ${selectedMatchId === 'CUSTOM' ? 'hidden sm:flex' : ''}`}>
                 <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Formasi Kandang</label>
                 <select
                   value={homeFormation}
@@ -1476,9 +1051,9 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
           {/* Tactical Football Pitch Visual (lg:col-span-7) */}
           <div className="lg:col-span-7 space-y-4">
             <div className="text-center font-black text-[10px] text-slate-400 tracking-wider flex justify-between bg-slate-50 py-2.5 px-4 rounded-xl border border-slate-100 uppercase">
-              <span>{awayTeam?.name || 'Tandang'} (TANDANG - ATAS)</span>
+              <span>{homeTeam?.name || 'Kandang'} (KANDANG - ATAS)</span>
               <span className="text-slate-300">• Setengah Lapangan •</span>
-              <span>{homeTeam?.name || 'Kandang'} (KANDANG - BAWAH)</span>
+              <span>{awayTeam?.name || 'Tandang'} (TANDANG - BAWAH)</span>
             </div>
 
             {/* Tactical Football Pitch Container */}
@@ -1513,7 +1088,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-20 h-1 bg-white/40 rounded-b-md" />
               <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-20 h-1 bg-white/40 rounded-t-md" />
 
-              {/* HOME TEAM (Bottom Half, facing UP) */}
+              {/* HOME TEAM (Top Half, facing DOWN) */}
               {homePlayersOnPitch.map((item) => {
                 const p = item.player;
                 const ovr = getOverall(p);
@@ -1557,7 +1132,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                 );
               })}
 
-              {/* AWAY TEAM (Top Half, facing DOWN) */}
+              {/* AWAY TEAM (Bottom Half, facing UP) */}
               {awayPlayersOnPitch.map((item) => {
                 const p = item.player;
                 const ovr = getOverall(p);
@@ -1661,13 +1236,11 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Skuad Lists Selection Details */}
+                 {/* Skuad Lists Selection Details */}
             <div className="space-y-4">
               <h4 className="font-black text-[10px] text-slate-400 uppercase tracking-widest pl-1">Pilih Pemain di Skuad Sesuai Posisi:</h4>
               
-              <div className="max-h-[22rem] overflow-y-auto pr-1 space-y-4 scrollbar-thin scrollbar-thumb-slate-200">
+              <div className="space-y-4">
                 {/* Home Skuad */}
                 <div className="space-y-2">
                    <div className="bg-emerald-50/70 border border-emerald-100 rounded-lg px-2.5 py-1.5 text-[9px] font-black text-emerald-800 uppercase tracking-wider flex justify-between items-center">
@@ -1675,7 +1248,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                     <span className="text-[8px] bg-emerald-600 text-white px-1 py-0.2 rounded font-black">{homePlayers.length} Skuad</span>
                   </div>
                   <div className="space-y-1">
-                    {homePlayers.map(p => {
+                    {sortedHomePlayers.map(p => {
                       const ovr = getOverall(p);
                       const isSelected = selectedPlayer?.id === p.id;
                       return (
@@ -1683,13 +1256,12 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                           key={p.id}
                           onClick={() => {
                             handleOpenEvaluation(p);
-                            window.scrollTo({ top: 300, behavior: 'smooth' });
                           }}
                           className={cn(
                             "flex items-center justify-between p-2 rounded-xl border cursor-pointer text-xs font-bold transition-all hover:bg-slate-50",
                             isSelected 
                               ? "bg-amber-50 border-amber-300 text-amber-950 shadow-sm" 
-                              : "bg-white border-slate-100 text-slate-700"
+                              : "bg-white border-slate-100 text-slate-705"
                           )}
                         >
                           <div className="flex items-center space-x-2">
@@ -1718,7 +1290,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                     <span className="text-[8px] bg-blue-600 text-white px-1 py-0.2 rounded font-black">{awayPlayers.length} Skuad</span>
                   </div>
                   <div className="space-y-1">
-                    {awayPlayers.map(p => {
+                    {sortedAwayPlayers.map(p => {
                       const ovr = getOverall(p);
                       const isSelected = selectedPlayer?.id === p.id;
                       return (
@@ -1726,13 +1298,12 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                           key={p.id}
                           onClick={() => {
                             handleOpenEvaluation(p);
-                            window.scrollTo({ top: 300, behavior: 'smooth' });
                           }}
                           className={cn(
                             "flex items-center justify-between p-2 rounded-xl border cursor-pointer text-xs font-bold transition-all hover:bg-slate-50",
                             isSelected 
                               ? "bg-amber-50 border-amber-300 text-amber-950 shadow-sm" 
-                              : "bg-white border-slate-100 text-slate-700"
+                              : "bg-white border-slate-100 text-slate-705"
                           )}
                         >
                           <div className="flex items-center space-x-2">
@@ -1754,11 +1325,165 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>          </div>
             
           </div>
         </div>
       </div>
+
+      {/* Top statistics overview row */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Top Scout Stars */}
+        <div className="lg:col-span-1 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
+          <div className="space-y-4">
+            <h3 className="font-black text-slate-800 text-sm flex items-center space-x-2 uppercase tracking-wide border-b border-slate-100 pb-3">
+              <Award className="w-5 h-5 text-amber-500" />
+              <span>Pemain Kategori Gold (OVR 80+)</span>
+            </h3>
+            
+            <div className="space-y-3">
+              {topElitePlayers.map((p, idx) => {
+                const ovr = getOverall(p);
+                const t = teams.find(team => team.id === p.teamId);
+                const details = getRatingDetails(ovr);
+                return (
+                  <div 
+                    key={p.id} 
+                    onClick={() => handleOpenEvaluation(p)}
+                    className="flex items-center justify-between p-3 rounded-xl border border-slate-100 hover:border-amber-300 hover:bg-amber-50/20 cursor-pointer transition-all"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <span className="text-xs font-black text-slate-400">#0{idx+1}</span>
+                      <div>
+                        <p className="font-black text-sm text-slate-800">{p.name}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{t?.name}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{p.position || 'ST'}</span>
+                      <span className={cn("px-2.5 py-1 rounded-lg text-xs font-black", details.badgeColor)}>
+                        {ovr} OVR
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+              {topElitePlayers.length === 0 && (
+                <div className="text-center text-slate-400 text-xs py-8">Belum ada penilaian pemain.</div>
+              )}
+            </div>
+          </div>
+          <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-bold italic">
+            <span>* Nilai minimal 80 untuk predikat Gold</span>
+            <Activity className="w-4 h-4 text-slate-300" />
+          </div>
+        </div>
+
+        {/* Right Columns: Active Scout Card Rating Panel or Tutorial */}
+        <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 border border-slate-800">
+          {/* Subtle field markings on background */}
+          <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:24px_24px]" />
+          
+          {selectedPlayer ? (
+            <div className="space-y-5 z-10 w-full max-w-md">
+              <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl font-bold flex items-center space-x-2 text-amber-300 text-xs">
+                <Sliders className="w-5 h-5 text-amber-500" />
+                <span>Pengaturan Form Pemain Aktif</span>
+              </div>
+              <h3 className="text-2xl font-black italic text-white uppercase tracking-tight">FORM SEDANG DIBUKA DI POPUP</h3>
+              <p className="text-slate-400 text-xs leading-relaxed">
+                Formulir pemantauan/scout untuk <strong className="text-amber-400 font-extrabold">{selectedPlayer.name}</strong> sedang aktif dalam tampilan popup modal. Silakan lakukan perubahan di sana.
+              </p>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => setSelectedPlayer(null)}
+                  className="flex items-center space-x-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 px-5 py-2.5 rounded-xl text-xs font-black tracking-wider uppercase transition-all"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Tutup Popup</span>
+                </button>
+              </div>
+            </div>
+          ) : isAddingNew ? (
+            <div className="space-y-6 z-10 w-full max-w-xl mx-auto">
+              <div className="flex justify-between items-center border-b border-slate-850 pb-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest block">Prospek GSI Ciamis</span>
+                  <h4 className="text-lg font-black text-white">TAMBAH PEMAIN BARU</h4>
+                </div>
+                <button 
+                  onClick={() => setIsAddingNew(false)}
+                  className="p-1 px-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors text-xs font-black"
+                >
+                  BATAL
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 block">NAMA PEMAIN</label>
+                  <input 
+                    placeholder="Contoh: Pratama Arhan Jr"
+                    className="w-full p-3 rounded-xl bg-slate-850 border border-slate-755 text-sm font-bold text-white outline-none focus:ring-1 focus:ring-amber-500"
+                    value={newPlayerName}
+                    onChange={(e) => setNewPlayerName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-slate-400 block">TIM ASOSIASI / SEKOLAH</label>
+                  <select 
+                    className="w-full p-3 rounded-xl bg-slate-850 border border-slate-755 text-sm font-bold text-white outline-none focus:ring-1 focus:ring-amber-500"
+                    value={newPlayerTeamId}
+                    onChange={(e) => setNewPlayerTeamId(e.target.value)}
+                  >
+                    <option value="">Pilih Tim</option>
+                    {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button 
+                  onClick={handleAddNewPlayer}
+                  disabled={!newPlayerName || !newPlayerTeamId}
+                  className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 px-8 py-3.5 text-xs font-black uppercase rounded-xl transition-all"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                  <span>Tambahkan Pemain & Atur Rating</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Default Welcome Information */}
+              <div className="space-y-5 z-10 max-w-md">
+                <div className="bg-amber-500/10 border border-amber-500/20 p-3 rounded-xl font-bold flex items-center space-x-2 text-amber-300 text-xs">
+                  <Sliders className="w-5 h-5 text-amber-500" />
+                  <span>Instruksi Penilaian Scout Kompetisi</span>
+                </div>
+                <h3 className="text-2xl font-black italic text-white uppercase tracking-tight">SILAKAN PILIH PEMAIN UNTUK DINILAI</h3>
+                <p className="text-slate-400 text-sm leading-relaxed">
+                  Pilih salah satu kartu pemain yang terdaftar di bawah untuk melakukan modifikasi rating performa taktis (FUT Rating Badge) atau tambah prospek baru.
+                </p>
+                <div className="flex space-x-3">
+                  <button 
+                    onClick={() => setIsAddingNew(true)}
+                    className="flex items-center space-x-2 bg-white/10 hover:bg-white/15 px-5 py-3 rounded-xl text-xs font-black tracking-wider uppercase transition-all"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>Tambah Pemain Scout</span>
+                  </button>
+                </div>
+              </div>
+              <div className="hidden md:flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-800 rounded-3xl w-52 h-72 space-y-3 shadow-lg opacity-40">
+                <User className="w-12 h-12 text-slate-500" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">SILHOUETTE FIFA FUT</p>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+          {/* SEKSI TAKTIKAL & LAPANGAN FORMASI DEACTIVATED */}
 
       {/* SEKSI PERBANDINGAN & HASIL PEMANTAUAN */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -1981,7 +1706,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
       </div>
 
       {/* Main Players List Filters and Cards Grid */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-8 shadow-sm space-y-6">
+      <div className="bg-white rounded-[1.5rem] md:rounded-3xl border border-slate-200 p-4 sm:p-6 md:p-8 shadow-sm space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
           <div>
             <h3 className="font-extrabold text-xl text-slate-800">Daftar Bakat Terpantau</h3>
@@ -2027,7 +1752,7 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
         </div>
 
         {/* FUT Cards Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 justify-items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6 justify-items-center">
           {sortedPlayers.map(p => (
             <FutCard 
               key={p.id} 
@@ -2047,6 +1772,404 @@ export default function ScoutView({ players, teams, matches = [], onRefresh }: {
           )}
         </div>
       </div>
+
+      {/* Scout Form Popup Modal (Overlay) */}
+      {selectedPlayer && (
+        <div className="fixed inset-0 z-55 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-hidden select-none">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-800 text-white w-full max-w-4xl max-h-[94vh] flex flex-col rounded-[2rem] shadow-2xl relative overflow-hidden my-auto"
+          >
+            {/* Field background watermark */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[size:18px_18px] z-0" />
+
+            {/* Header */}
+            <div className="relative z-10 p-5 pb-4 border-b border-slate-850 flex justify-between items-center bg-slate-950/70 shrink-0">
+              <div className="space-y-0.5">
+                <span className="text-[9px] font-black uppercase text-amber-500 tracking-widest leading-none block">PANEL UTAMA PEMANDU BAKAT</span>
+                <h3 className="text-md sm:text-lg font-black text-white flex items-center gap-1.5 uppercase tracking-wide">
+                  <Award className="w-5 h-5 text-amber-500" />
+                  SCOUT POPUP: <span className="text-amber-400 italic font-black">{selectedPlayer.name}</span>
+                </h3>
+              </div>
+              <button
+                onClick={() => setSelectedPlayer(null)}
+                className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 hover:text-rose-400 text-slate-400 font-sans transition-all z-20 shrink-0 border border-slate-850"
+                title="Tutup Form"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content Container (Scrollable) */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 relative z-10 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 items-start">
+                
+                {/* Visualizer (Left Column) */}
+                <div className="hidden md:flex md:flex-col md:col-span-5 items-center justify-center p-4 bg-slate-955/30 border border-slate-850 rounded-2xl space-y-4 shadow-inner shrink-0 md:sticky md:top-0">
+                  <FutCard 
+                    player={{
+                      ...selectedPlayer, 
+                      position, 
+                      rating: ratings, 
+                      customAttributes: customAttrs, 
+                      secondaryPosition: enableSecondary ? secondaryPosition : undefined,
+                      secondaryRating: enableSecondary ? secondaryRatings : undefined,
+                    }} 
+                    team={teams.find(t => t.id === selectedPlayer.teamId)} 
+                    globalShowCustom={showCustomAttrs}
+                  />
+                  <div className="text-center">
+                    <span className="text-[9px] font-black tracking-widest text-amber-550 uppercase inline-flex items-center gap-1 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/20">
+                      <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500 animate-pulse" /> LIVE CARD PREVIEW
+                    </span>
+                  </div>
+                </div>
+
+                {/* Form Inputs (Right Column) */}
+                <div className="md:col-span-7 space-y-5">
+                  <div className="space-y-4">
+                    
+                    {/* Position Selector */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block font-sans">POSISI UTAMA</label>
+                      <select 
+                        value={position}
+                        onChange={(e) => setPosition(e.target.value)}
+                        className="w-full bg-slate-850 border border-slate-700 rounded-xl p-3 text-sm font-black text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all font-sans"
+                      >
+                        {positionsOptions.map(p => <option key={p} value={p}>{p}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Secondary Position Checkbox & Options */}
+                    <div className="bg-slate-955/40 border border-slate-800 p-4 rounded-2xl space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <input
+                            id="popup-enable-secondary-checkbox"
+                            type="checkbox"
+                            checked={enableSecondary}
+                            onChange={(e) => setEnableSecondary(e.target.checked)}
+                            className="w-4 h-4 text-amber-500 focus:ring-amber-500 rounded accent-amber-500 cursor-pointer"
+                          />
+                          <label htmlFor="popup-enable-secondary-checkbox" className="text-xs font-black text-amber-400 uppercase tracking-widest cursor-pointer select-none">
+                            Posisi / Peran Tambahan
+                          </label>
+                        </div>
+                        <span className="text-[8px] font-extrabold bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded tracking-wider border border-amber-500/10">SECONDARY</span>
+                      </div>
+
+                      {enableSecondary && (
+                        <div className="space-y-4 pt-2 border-t border-slate-805/60">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block font-sans font-extrabold">PILIH POSISI TAMBAHAN</label>
+                            <select 
+                              value={secondaryPosition}
+                              onChange={(e) => setSecondaryPosition(e.target.value)}
+                              className="w-full bg-slate-850 border border-slate-700 rounded-xl p-2.5 text-xs font-black text-white outline-none focus:ring-2 focus:ring-amber-500 transition-all font-sans"
+                            >
+                              {positionsOptions.filter(p => p !== position).map(p => <option key={p} value={p}>{p}</option>)}
+                            </select>
+                          </div>
+
+                          {/* Secondary Rating Sliders */}
+                          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 bg-slate-950/50 p-3 rounded-xl border border-slate-850/65">
+                            {/* Secondary Slider 1 */}
+                            <div className="space-y-1 font-sans">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                <span>{secondaryPosition === 'GK' ? 'DIV' : 'SPD (LARI)'}</span>
+                                <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.pac}</span>
+                              </label>
+                              <input 
+                                type="range" min="1" max="99" 
+                                value={secondaryRatings.pac}
+                                onChange={(e) => setSecondaryRatings({...secondaryRatings, pac: parseInt(e.target.value)})}
+                                className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
+                              />
+                            </div>
+
+                            {/* Secondary Slider 2 */}
+                            <div className="space-y-1 font-sans">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                <span>{secondaryPosition === 'GK' ? 'HAN' : 'SHO (TENDANG)'}</span>
+                                <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.sho}</span>
+                              </label>
+                              <input 
+                                type="range" min="1" max="99" 
+                                value={secondaryRatings.sho}
+                                onChange={(e) => setSecondaryRatings({...secondaryRatings, sho: parseInt(e.target.value)})}
+                                className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
+                              />
+                            </div>
+
+                            {/* Secondary Slider 3 */}
+                            <div className="space-y-1 font-sans">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                <span>{secondaryPosition === 'GK' ? 'DIS' : 'PAS (UMPAN)'}</span>
+                                <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.pas}</span>
+                              </label>
+                              <input 
+                                type="range" min="1" max="99" 
+                                value={secondaryRatings.pas}
+                                onChange={(e) => setSecondaryRatings({...secondaryRatings, pas: parseInt(e.target.value)})}
+                                className="w-full h-1 bg-slate-805 rounded appearance-none cursor-pointer accent-amber-400"
+                              />
+                            </div>
+
+                            {/* Secondary Slider 4 */}
+                            <div className="space-y-1 font-sans">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                <span>{secondaryPosition === 'GK' ? 'REF' : 'DRI (GIRING)'}</span>
+                                <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.dri}</span>
+                              </label>
+                              <input 
+                                type="range" min="1" max="99" 
+                                value={secondaryRatings.dri}
+                                onChange={(e) => setSecondaryRatings({...secondaryRatings, dri: parseInt(e.target.value)})}
+                                className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
+                              />
+                            </div>
+
+                            {/* Secondary Slider 5 */}
+                            <div className="space-y-1 font-sans">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                <span>{secondaryPosition === 'GK' ? 'PHY' : 'DEF (BERTAHAN)'}</span>
+                                <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.def}</span>
+                              </label>
+                              <input 
+                                type="range" min="1" max="99" 
+                                value={secondaryRatings.def}
+                                onChange={(e) => setSecondaryRatings({...secondaryRatings, def: parseInt(e.target.value)})}
+                                className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
+                              />
+                            </div>
+
+                            {/* Secondary Slider 6 */}
+                            <div className="space-y-1 font-sans">
+                              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                                <span>{secondaryPosition === 'GK' ? 'POS' : 'PHY (FISIK)'}</span>
+                                <span className="text-amber-400 font-extrabold font-mono text-[10px]">{secondaryRatings.phy}</span>
+                              </label>
+                              <input 
+                                type="range" min="1" max="99" 
+                                value={secondaryRatings.phy}
+                                onChange={(e) => setSecondaryRatings({...secondaryRatings, phy: parseInt(e.target.value)})}
+                                className="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-amber-400"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Master Form Attributes Group */}
+                    <div className="font-black text-[10.5px] text-amber-500 uppercase tracking-wider border-b border-slate-850 pb-1 mt-4">
+                      ATRIBUT UTAMA KARTU UTAMA
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Slider 1 */}
+                      <div className="space-y-1 font-sans bg-slate-950/20 p-2.5 rounded-xl border border-slate-850/50">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                          <span>{position === 'GK' ? 'DIV (DIVING)' : 'SPD (LARI)'}</span>
+                          <span className="text-amber-400 font-black font-mono">{ratings.pac}</span>
+                        </label>
+                        <input 
+                          type="range" min="1" max="99" 
+                          value={ratings.pac}
+                          onChange={(e) => setRatings({...ratings, pac: parseInt(e.target.value)})}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500 animate-pulse"
+                        />
+                      </div>
+
+                      {/* Slider 2 */}
+                      <div className="space-y-1 font-sans bg-slate-950/20 p-2.5 rounded-xl border border-slate-850/50">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                          <span>{position === 'GK' ? 'HAN (TANGKAP)' : 'SHO (TENDANG)'}</span>
+                          <span className="text-amber-400 font-black font-mono">{ratings.sho}</span>
+                        </label>
+                        <input 
+                          type="range" min="1" max="99" 
+                          value={ratings.sho}
+                          onChange={(e) => setRatings({...ratings, sho: parseInt(e.target.value)})}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        />
+                      </div>
+
+                      {/* Slider 3 */}
+                      <div className="space-y-1 font-sans bg-slate-950/20 p-2.5 rounded-xl border border-slate-850/50">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                          <span>{position === 'GK' ? 'DIS (DISTRIBUSI)' : 'PAS (UMPAN)'}</span>
+                          <span className="text-amber-400 font-black font-mono">{ratings.pas}</span>
+                        </label>
+                        <input 
+                          type="range" min="1" max="99" 
+                          value={ratings.pas}
+                          onChange={(e) => setRatings({...ratings, pas: parseInt(e.target.value)})}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        />
+                      </div>
+
+                      {/* Slider 4 */}
+                      <div className="space-y-1 font-sans bg-slate-950/20 p-2.5 rounded-xl border border-slate-850/50">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                          <span>{position === 'GK' ? 'REF (REFLEKS)' : 'DRI (GIRING)'}</span>
+                          <span className="text-amber-400 font-black font-mono">{ratings.dri}</span>
+                        </label>
+                        <input 
+                          type="range" min="1" max="99" 
+                          value={ratings.dri}
+                          onChange={(e) => setRatings({...ratings, dri: parseInt(e.target.value)})}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        />
+                      </div>
+
+                      {/* Slider 5 */}
+                      <div className="space-y-1 font-sans bg-slate-950/20 p-2.5 rounded-xl border border-slate-850/50">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                          <span>{position === 'GK' ? 'PHY (FISIK)' : 'DEF (BERTAHAN)'}</span>
+                          <span className="text-amber-400 font-black font-mono">{ratings.def}</span>
+                        </label>
+                        <input 
+                          type="range" min="1" max="99" 
+                          value={ratings.def}
+                          onChange={(e) => setRatings({...ratings, def: parseInt(e.target.value)})}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        />
+                      </div>
+
+                      {/* Slider 6 */}
+                      <div className="space-y-1 font-sans bg-slate-950/20 p-2.5 rounded-xl border border-slate-850/50">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex justify-between">
+                          <span>{position === 'GK' ? 'POS (POSISI)' : 'PHY (FISIK)'}</span>
+                          <span className="text-amber-400 font-black font-mono">{ratings.phy}</span>
+                        </label>
+                        <input 
+                          type="range" min="1" max="99" 
+                          value={ratings.phy}
+                          onChange={(e) => setRatings({...ratings, phy: parseInt(e.target.value)})}
+                          className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Shortlist Checkbox */}
+                    <div className="bg-slate-950 border border-amber-500/20 p-4 rounded-2xl flex items-start space-x-3 text-left font-sans transition-all hover:bg-slate-900 mt-2">
+                      <input
+                        id="popup-shortlist-scout"
+                        type="checkbox"
+                        checked={markedForScoutTeam}
+                        onChange={(e) => setMarkedForScoutTeam(e.target.checked)}
+                        className="mt-1 w-4 h-4 rounded text-amber-500 focus:ring-amber-500 outline-none cursor-pointer accent-amber-500"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor="popup-shortlist-scout" className="text-xs font-black text-amber-555 uppercase tracking-wider cursor-pointer select-none">
+                          Masuk Tim Hasil Pemantauan
+                        </label>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5 leading-relaxed">
+                          Tandai ini agar otomatis masuk ke Tim hasil pemantauan pemandu bakat Scout Talent.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Custom Attributes Section */}
+                    <div className="border-t border-slate-850 pt-4 space-y-3 font-sans">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black uppercase text-amber-500 tracking-widest flex items-center">
+                          <Sparkles className="w-3.5 h-3.5 mr-1 text-amber-405 animate-pulse" /> Atribut Tambahan Kustom
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowCustomAttrs(!showCustomAttrs)}
+                          className={cn(
+                            "text-[9px] font-extrabold px-2 py-1 rounded transition-all border",
+                            showCustomAttrs 
+                              ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-slate-800" 
+                              : "bg-slate-900 border-slate-800 text-slate-500 hover:text-white"
+                          )}
+                        >
+                          {showCustomAttrs ? '👁️ Tampilkan di Kartu' : '👁️ Sembunyikan Baru'}
+                        </button>
+                      </div>
+
+                      {/* Custom attributes list */}
+                      <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                        {customAttrs.map((attr, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-slate-950/80 border border-slate-850 rounded-lg px-2.5 py-1.5 text-xs font-sans">
+                            <div className="flex items-center space-x-2 truncate">
+                              <span className="text-amber-500 font-black">•</span>
+                              <span className="font-semibold text-slate-300 truncate">{attr.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCustomAttrs(customAttrs.filter((_, i) => i !== idx));
+                              }}
+                              className="text-red-400 hover:text-red-300 font-bold text-[9px] hover:underline shrink-0"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        ))}
+                        {customAttrs.length === 0 && (
+                          <p className="text-[11px] text-slate-500 italic pl-1 pb-1">Belum ada atribut kustom. Tulis & tambahkan di bawah.</p>
+                        )}
+                      </div>
+
+                      {/* Add new custom attr form */}
+                      <div className="flex gap-2">
+                        <input
+                          placeholder="Tulis Catatan Kustom Scout (e.g. Tendangan bebas melengkung tajam)"
+                          value={newAttrName}
+                          onChange={(e) => setNewAttrName(e.target.value)}
+                          className="flex-1 bg-slate-950 border border-slate-800 p-2 rounded-lg text-xs font-bold text-white outline-none focus:border-amber-500 font-sans"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (newAttrName.trim()) {
+                              setCustomAttrs([...customAttrs, { name: newAttrName.trim(), value: '-' }]);
+                              setNewAttrName('');
+                            }
+                          }}
+                          className="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 font-black rounded-lg text-xs flex items-center justify-center transition-colors shrink-0 font-sans"
+                        >
+                          TAMBAH
+                        </button>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Footer buttons */}
+            <div className="relative z-10 p-5 bg-slate-950 border-t border-slate-850 flex gap-3 justify-end items-center shrink-0">
+              <button 
+                onClick={() => setRatings({ pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 })}
+                className="px-5 py-3 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-xs font-black uppercase text-slate-300 rounded-xl active:scale-95 transition-all font-sans"
+              >
+                Reset Nilai
+              </button>
+              <button 
+                onClick={handleSaveRatings}
+                disabled={isSaving}
+                className="px-8 py-3 flex items-center justify-center space-x-2 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-450 hover:to-amber-550 text-slate-950 text-xs font-black uppercase rounded-xl shadow-lg active:scale-95 transition-all font-sans"
+              >
+                <Save className="w-4 h-4" />
+                <span>{isSaving ? 'Menyimpan...' : 'Simpan Rating'}</span>
+              </button>
+            </div>
+
+          </motion.div>
+        </div>
+      )}
+
     </div>
   );
 }

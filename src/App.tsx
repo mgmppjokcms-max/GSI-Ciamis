@@ -111,7 +111,7 @@ export default function App() {
             </div>
           </div>
           
-          <nav className="hidden md:flex space-x-1">
+          <nav className="hidden lg:flex space-x-1">
             {navItems.map((item) => {
               const isSpecial = item.id === 'scout' || item.id === 'admin';
               
@@ -150,7 +150,7 @@ export default function App() {
             })}
           </nav>
 
-          <div className="md:hidden">
+          <div className="lg:hidden">
              {/* Mobile menu button could go here */}
           </div>
         </div>
@@ -201,8 +201,8 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Mobile Nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-1 py-2.5 z-50">
+      {/* Mobile & Tablet Nav */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-1 py-2.5 z-50">
         <div className="grid grid-cols-8 gap-0.5">
           {navItems.map((item) => (
             <button
@@ -227,7 +227,7 @@ export default function App() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-500 py-12 px-4 text-center mt-12 pb-24 md:pb-12">
+      <footer className="bg-slate-900 text-slate-500 py-12 px-4 text-center mt-12 pb-24 lg:pb-12">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Shield className="w-5 h-5 text-pitch" />
